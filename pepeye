@@ -1,0 +1,53 @@
+#!/opt/local/bin/python
+""" Quick Analysis Tool 2.
+"""
+from __future__ import print_function
+import logging, sys, argparse
+
+from libpepeye.mainwindow import browse
+from libpepeye.version import USE_PYQT, PROGRAM_NAME, PROGRAM_VERSION, DEBUGGING
+
+logger = logging.getLogger(__name__)
+
+def remove_process_serial_number(arg_list):
+    """ Creates a copy of a list (typically sys.argv) where the strings that
+        start with '-psn_0_' are removed.
+        
+        These are the process serial number used by the OS-X open command
+        to bring applications to the front. They clash with argparse.
+        See: http://hintsforums.macworld.com/showthread.php?t=11978
+    """
+    return [arg for arg in arg_list if not arg.startswith("-psn_0_")]
+    
+
+def main():
+    """ Starts pepeye main window
+    """
+    about_str = "{} version: {}".format(PROGRAM_NAME, PROGRAM_VERSION)
+    parser = argparse.ArgumentParser(description = about_str)
+    parser.add_argument('--reset', action = 'store_true',  
+                        help="If set, the size and shapes of the Qt widgets will be reset to their defaults.")
+    parser.add_argument('-V', '--version', action = 'store_true',  
+                        help="Prints the program version")    
+        
+    parser.add_argument('-L', '--log-level', dest='log_level', default='debug' if DEBUGGING else 'warn',
+                        help="Log level. Only log messages with a level higher or equal than this will be printed. "
+                        "Default: 'warn'", choices=('debug', 'info', 'warn', 'error', 'critical'))
+    args = parser.parse_args(remove_process_serial_number(sys.argv[1:]))
+    #args = parser.parse_args(sys.argv[1:])
+
+    logging.basicConfig(level=args.log_level.upper(), stream=sys.stderr,
+                        format='%(asctime)s %(filename)25s:%(lineno)-4d : %(levelname)-7s: %(message)s')
+
+    logger.info('Started {}'.format(PROGRAM_NAME))
+    logger.info('Using: {}'.format('PyQt' if USE_PYQT else 'PySide'))
+
+    if args.version:
+        print(about_str)
+        sys.exit(0)
+
+    browse()
+    logger.info('Done {}'.format(PROGRAM_NAME))
+  
+if __name__ == "__main__":
+    main()
