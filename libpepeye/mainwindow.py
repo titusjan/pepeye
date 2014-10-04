@@ -1,12 +1,11 @@
 """ 
-    Quick Analysis Tool 2
-
+    Main window functionality
 """
 from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
 
-import logging, sys
+import logging, sys, pstats
 
 from .version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING, USE_PYQT
 from .utils import check_class
@@ -15,6 +14,8 @@ if USE_PYQT:
     from PyQt4 import QtCore, QtGui
 else:
     from PySide import QtCore, QtGui
+
+from .statstablemodel import StatsTableModel
 
 logger = logging.getLogger(__name__)
 
@@ -43,11 +44,13 @@ def getQApplicationInstance():
     return app
 
 
-def createBrowser(*args, **kwargs):
-    """ Opens an OjbectBrowser window
+def createBrowser(fileName = None, **kwargs):
+    """ Opens an MainWindow window
     """
     app = getQApplicationInstance()
-    browser = MainWindow(*args, **kwargs)
+    browser = MainWindow(**kwargs)
+    if fileName is not None:
+        browser.openStatsFile(fileName)
     browser.show()
     return browser, app # TODO: make qt stuff module
         
@@ -62,10 +65,10 @@ def execute():
     return exit_code
 
 
-def browse(*args, **kwargs):
-    """ Opens and executes a browser window
+def browse(fileName = None, **kwargs):
+    """ Opens and executes a main window
     """
-    _object_browser, _app = createBrowser(*args, **kwargs)
+    _object_browser, _app = createBrowser(fileName = fileName, **kwargs)
     exit_code = execute()
     return exit_code
     
@@ -77,7 +80,7 @@ def browse(*args, **kwargs):
 
 
 class MainWindow(QtGui.QMainWindow):
-    """ QAT main application window.
+    """ pepyeye main application window.
     """
     _nInstances = 0
     
@@ -91,7 +94,7 @@ class MainWindow(QtGui.QMainWindow):
         self._InstanceNr = self._nInstances        
         
         # Model
-        pass
+        self._statsTableModel = StatsTableModel(parent=self, statsObject=None)
 
         # Views
         self.__setupActions()
@@ -102,10 +105,7 @@ class MainWindow(QtGui.QMainWindow):
         app.lastWindowClosed.connect(app.quit) 
 
         self._readViewSettings(reset = reset) # TODO: enable
-        
-        # Update views with model
-        pass
-    
+            
         logger.debug("MainWindow constructor finished")
      
 
@@ -113,17 +113,19 @@ class MainWindow(QtGui.QMainWindow):
         """ Creates the main window actions.
         """
         pass
-                              
+                  
                               
     def __setupMenu(self):
         """ Sets up the main menu.
         """
-        file_menu = self.menuBar().addMenu("&File")
-        file_menu.addAction("C&lose", self.closeWindow, "Ctrl+W")
-        file_menu.addAction("E&xit", self.quitApplication, "Ctrl+Q")
+        fileMenu = self.menuBar().addMenu("&File")
+        openAction = fileMenu.addAction("&Open...", self.openStatsFile)
+        openAction.setShortcut("Ctrl+O")
+        fileMenu.addAction("C&lose", self.closeWindow, "Ctrl+W")
+        fileMenu.addAction("E&xit", self.quitApplication, "Ctrl+Q")
         if DEBUGGING is True:
-            file_menu.addSeparator()
-            file_menu.addAction("&Test", self.myTest, "Ctrl+T")
+            fileMenu.addSeparator()
+            fileMenu.addAction("&Test", self.myTest, "Ctrl+T")
         
         self.menuBar().addSeparator()
         help_menu = self.menuBar().addMenu("&Help")
@@ -133,13 +135,58 @@ class MainWindow(QtGui.QMainWindow):
     def __setupViews(self):
         """ Creates the UI widgets. 
         """
-        self.mainWidget = QtGui.QWidget(self)
-        self.setCentralWidget(self.mainWidget)
+        #self.mainWidget = QtGui.QWidget(self)
+        #self.setCentralWidget(self.mainWidget)
+        
+        self.mainSplitter = QtGui.QSplitter(self, orientation = QtCore.Qt.Vertical)
+        self.setCentralWidget(self.mainSplitter)
+        centralLayout = QtGui.QVBoxLayout()
+        self.mainSplitter.setLayout(centralLayout)
+        
+        self.tableView = QtGui.QTableView(self)
+        self.tableView.setShowGrid(True)
+        #self.tableView.verticalHeader().hide()
+        self.tableView.setModel(self._statsTableModel)
+        centralLayout.addWidget(self.tableView)        
+        
+        self.label = QtGui.QLabel("hello", parent=self)
+        centralLayout.addWidget(self.label)        
         
         # Connect signals
         pass
 
     # End of setup_methods
+    
+    def loadStatsFile(self, fileName):
+        """ Loads a pstats file and updates the table model
+        """
+        logger.debug("Loading file: {}".format(fileName))
+        pStats = pstats.Stats(fileName)
+        self._statsTableModel.setStats(statsObject=pStats)
+        
+        #stats.strip_dirs()
+        #stats.calc_callees()
+        
+                     
+
+    def openStatsFile(self, fileName=None):
+        """ Lets the user select a pstats file and opens it.
+        """
+        if not fileName:
+            fileName = QtGui.QFileDialog.getOpenFileName(self, # TODO: PYQT
+                "Choose a pstats file", '', 'All files (*.*)')[0]
+
+        if fileName:
+            logger.info("Loading data from: {!r}".format(fileName))
+            try:
+                self.loadStatsFile(fileName)
+            except StandardError, ex:
+                if DEBUGGING:
+                    raise
+                else:
+                    logger.error("Error opening file: %s", ex)
+                    QtGui.QMessageBox.warning(self, "Error opening file", str(ex))
+            
     
     
     def _settingsGroupName(self, prefix):
