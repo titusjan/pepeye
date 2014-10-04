@@ -3,8 +3,14 @@
 from __future__ import print_function
 
 import logging
-from PySide import QtCore, QtGui
-from PySide.QtCore import Qt
+from .version import USE_PYQT
+
+if USE_PYQT:
+    from PyQt4 import QtCore, QtGui
+    from PyQt4.QtCore import Qt
+else:
+    from PySide import QtCore, QtGui
+    from PySide.QtCore import Qt
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +20,7 @@ class ToggleColumnMixIn(object):
     """ Adds actions to a QTableView that can show/hide columns 
         by right clicking on the header
     """ 
-    def add_header_context_menu(self, checked = None, checkable = None, enabled = None):
+    def addHeaderContextMenu(self, checked = None, checkable = None, enabled = None):
         """ Adds the context menu from using header information
         
             checked can be a header_name -> boolean dictionary. If given, headers
@@ -31,7 +37,7 @@ class ToggleColumnMixIn(object):
         checkable = checkable if checkable is not None else {}
         enabled = enabled if enabled is not None else {}
         
-        horizontal_header = self._horizontal_header()
+        horizontal_header = self._horizontalHeader()
         horizontal_header.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
 
         self.toggle_column_actions_group = QtGui.QActionGroup(self)
@@ -46,7 +52,7 @@ class ToggleColumnMixIn(object):
                                    checkable = checkable.get(column_label, True), 
                                    enabled = enabled.get(column_label, True), 
                                    toolTip = "Shows or hides the {} column".format(column_label))
-            func = self.__make_show_column_function(col) 
+            func = self.__makeShowColumnFunction(col) 
             self.__toggle_functions.append(func) # keep reference
             horizontal_header.addAction(action)
             is_checked = checked.get(column_label, not horizontal_header.isSectionHidden(col))
@@ -55,13 +61,13 @@ class ToggleColumnMixIn(object):
             assert action.toggled.connect(func)
     
     
-    def get_header_context_menu_actions(self):
+    def getHeaderContextMenuActions(self):
         """ Returns the actions of the context menu of the header
         """
-        return self._horizontal_header().actions()
+        return self._horizontalHeader().actions()
         
         
-    def _horizontal_header(self):
+    def _horizontalHeader(self):
         """ Returns the horizontal header (of type QHeaderView).
         
             Override this if the horizontalHeader() function does not exist.
@@ -69,13 +75,13 @@ class ToggleColumnMixIn(object):
         return self.horizontalHeader()
         
         
-    def __make_show_column_function(self, column_idx):
+    def __makeShowColumnFunction(self, column_idx):
         """ Creates a function that shows or hides a column."""
         show_column = lambda checked: self.setColumnHidden(column_idx, not checked)
         return show_column   
     
     
-    def read_view_settings(self, key, settings=None, reset=False):
+    def readViewSettings(self, key, settings=None, reset=False):
         """ Reads the persistent program settings
         
             :param reset: If True, the program resets to its default settings
@@ -86,7 +92,7 @@ class ToggleColumnMixIn(object):
         if not reset:
             if settings is None:
                 settings = QtCore.QSettings()
-            horizontal_header = self._horizontal_header()
+            horizontal_header = self._horizontalHeader()
             header_restored = horizontal_header.restoreState(settings.value(key))
             
             # update actions
@@ -96,14 +102,14 @@ class ToggleColumnMixIn(object):
                 
         return header_restored
 
-    def write_view_settings(self, key, settings=None):
+    def writeViewSettings(self, key, settings=None):
         """ Writes the view settings to the persistent store
         """         
         logger.debug("Writing view settings for: {}".format(key))
         
         if settings is None:
             settings = QtCore.QSettings()
-        settings.setValue(key, self._horizontal_header().saveState())
+        settings.setValue(key, self._horizontalHeader().saveState())
 
 
 
@@ -112,12 +118,19 @@ class ToggleColumnTableWidget(QtGui.QTableWidget, ToggleColumnMixIn):
     """
     pass
 
+
+        
+class ToggleColumnTableView(QtGui.QTableView, ToggleColumnMixIn):
+    """ A QTableView where right clicking on the header allows the user to show/hide columns
+    """
+    pass
+
         
         
 class ToggleColumnTreeWidget(QtGui.QTreeWidget, ToggleColumnMixIn):
     """ A QTreeWidget where right clicking on the header allows the user to show/hide columns
     """
-    def _horizontal_header(self):
+    def _horizontalHeader(self):
         """ Returns the horizontal header (of type QHeaderView).
         
             Override this if the horizontalHeader() function does not exist.
@@ -129,7 +142,7 @@ class ToggleColumnTreeWidget(QtGui.QTreeWidget, ToggleColumnMixIn):
 class ToggleColumnTreeView(QtGui.QTreeView, ToggleColumnMixIn):
     """ A QTreeView where right clicking on the header allows the user to show/hide columns
     """
-    def _horizontal_header(self):
+    def _horizontalHeader(self):
         """ Returns the horizontal header (of type QHeaderView).
         
             Override this if the horizontalHeader() function does not exist.
