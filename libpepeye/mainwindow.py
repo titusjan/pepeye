@@ -16,6 +16,7 @@ else:
     from PySide import QtCore, QtGui
 
 from .statstablemodel import StatsTableModel
+from .togglecolumn import ToggleColumnTableView
 
 logger = logging.getLogger(__name__)
 
@@ -143,7 +144,7 @@ class MainWindow(QtGui.QMainWindow):
         centralLayout = QtGui.QVBoxLayout()
         self.mainSplitter.setLayout(centralLayout)
         
-        self.tableView = QtGui.QTableView(self)
+        self.tableView = ToggleColumnTableView(self)
         self.tableView.setShowGrid(True)
         #self.tableView.verticalHeader().hide()
         self.tableView.setModel(self._statsTableModel)
@@ -186,7 +187,6 @@ class MainWindow(QtGui.QMainWindow):
                 else:
                     logger.error("Error opening file: %s", ex)
                     QtGui.QMessageBox.warning(self, "Error opening file", str(ex))
-            
     
     
     def _settingsGroupName(self, prefix):
@@ -213,6 +213,8 @@ class MainWindow(QtGui.QMainWindow):
             settings.beginGroup(self._settingsGroupName('view'))
             pos = settings.value("main_window/pos", pos)
             windowSize = settings.value("main_window/size", windowSize)
+            self.mainSplitter.restoreState(settings.value("main_splitter/state"))
+            self.tableView.readViewSettings('table/header_state', settings, reset) 
             settings.endGroup()
             
         logger.debug("windowSize: {!r}".format(windowSize))
@@ -228,6 +230,8 @@ class MainWindow(QtGui.QMainWindow):
         
         settings = QtCore.QSettings()
         settings.beginGroup(self._settingsGroupName('view'))
+        self.tableView.writeViewSettings("table/header_state", settings)
+        settings.setValue("main_splitter/state", self.mainSplitter.saveState())        
         settings.setValue("main_window/pos", self.pos())
         settings.setValue("main_window/size", self.size())
         settings.endGroup()
@@ -255,7 +259,7 @@ class MainWindow(QtGui.QMainWindow):
         """ Close all windows (e.g. the L0 window).
         """
         logger.debug("closeEvent")
-        self._writeViewSettings()  # TODO: enable
+        self._writeViewSettings()
         self.close()
         event.accept()
             
