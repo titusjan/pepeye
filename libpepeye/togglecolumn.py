@@ -39,7 +39,7 @@ class ToggleColumnMixIn(object):
         self.__toggle_functions = []  # for keeping references
         
         for col in range(horizontal_header.count()):
-            column_label = self.model().headerData(col, Qt.Orientation.Horizontal, Qt.DisplayRole)
+            column_label = self.model().headerData(col, Qt.Horizontal, Qt.DisplayRole)
             logger.debug("Adding: col {}: {}".format(col, column_label))            
             action = QtGui.QAction("Show {} column".format(column_label), 
                                    self.toggle_column_actions_group, 
@@ -52,7 +52,7 @@ class ToggleColumnMixIn(object):
             is_checked = checked.get(column_label, not horizontal_header.isSectionHidden(col))
             horizontal_header.setSectionHidden(col, not is_checked)
             action.setChecked(is_checked)
-            assert action.toggled.connect(func)
+            action.toggled.connect(func)
     
     
     def getHeaderContextMenuActions(self):
@@ -61,7 +61,7 @@ class ToggleColumnMixIn(object):
         return self._horizontalHeader().actions()
         
         
-    def _horizontalHeader(self):
+    def _horizontalHeader(self): # TODO: just redefine horizontalHeader()?
         """ Returns the horizontal header (of type QHeaderView).
         
             Override this if the horizontalHeader() function does not exist.

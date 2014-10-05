@@ -116,17 +116,23 @@ class MainWindow(QtGui.QMainWindow):
         self.mainSplitter.setLayout(centralLayout)
         
         self.tableView = ToggleColumnTableView(self)
+        self.tableView.setModel(self._statsTableModel)
         self.tableView.setWordWrap(False)     
         self.tableView.setShowGrid(False)
         #self.tableView.verticalHeader().hide()
         #self.tableView.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers) # needed?
         self.tableView.setAlternatingRowColors(True)
         self.tableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.tableView.addHeaderContextMenu(enabled = {'function': False}, checked = {})
+        #self.tableView.addHeaderContextMenu()
         
-        self.tableView.setModel(self._statsTableModel)
+        tableViewHeader = self.tableView.horizontalHeader()
+        tableViewHeader.setMovable(True)
+        tableViewHeader.setStretchLastSection(True)
+        
         centralLayout.addWidget(self.tableView)        
         
-        self.label = QtGui.QLabel("hello", parent=self)
+        self.label = QtGui.QLabel("Hi there", parent=self)
         centralLayout.addWidget(self.label)        
         
         # Connect signals
