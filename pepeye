@@ -10,6 +10,8 @@ from libpepeye.version import PROGRAM_NAME, PROGRAM_VERSION, DEBUGGING
 
 logger = logging.getLogger(__name__)
 
+    
+
 def remove_process_serial_number(arg_list):
     """ Creates a copy of a list (typically sys.argv) where the strings that
         start with '-psn_0_' are removed.

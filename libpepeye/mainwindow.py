@@ -5,12 +5,10 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
 
-import logging, sys, pstats
+import logging, pstats
 
 from .version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING
-from .utils import check_class
-
-from .qt import QtCore, QtGui, USE_PYQT
+from .qt import QtCore, QtGui, USE_PYQT, APPLICATION_INSTANCE
 
 from .statstablemodel import StatsTableModel
 from .togglecolumn import ToggleColumnTableView
@@ -19,45 +17,22 @@ logger = logging.getLogger(__name__)
 
 
 
-def loggingBasicConfig(level = 'WARN'):
-    """ Setup basic config logging. Useful for debugging to quickly setup a useful logger"""
-    fmt = '%(filename)25s:%(lineno)-4d : %(levelname)-7s: %(message)s'
-    logging.basicConfig(level=level, format=fmt)
-
-
-def getQApplicationInstance():
-    """ Returns the QApplication instance. Creates one if it doesn't exist.
-    """
-    app = QtGui.QApplication.instance()
-
-    if app is None:
-        app = QtGui.QApplication(sys.argv)
-    check_class(app, QtGui.QApplication)
-    
-    app.setApplicationName(PROGRAM_NAME)
-    app.setApplicationVersion(PROGRAM_VERSION)
-    app.setOrganizationName("titusjan")
-    app.setOrganizationDomain("titusjan.nl")    
-    
-    return app
-
-
 def createBrowser(fileName = None, **kwargs):
     """ Opens an MainWindow window
     """
-    app = getQApplicationInstance()
+    # Assumes qt.getQApplicationInstance() has been executed.
     browser = MainWindow(**kwargs)
     if fileName is not None:
         browser.openStatsFile(fileName)
     browser.show()
-    return browser, app # TODO: make qt stuff module
+    return browser
         
         
 def execute():
     """ Executes all browsers by starting the Qt main application
     """  
     logger.info("Starting the browser(s)...")
-    app = getQApplicationInstance()
+    app = APPLICATION_INSTANCE
     exit_code = app.exec_()
     logger.info("Browser(s) done...")
     return exit_code
@@ -66,10 +41,9 @@ def execute():
 def browse(fileName = None, **kwargs):
     """ Opens and executes a main window
     """
-    _object_browser, _app = createBrowser(fileName = fileName, **kwargs)
+    _object_browser = createBrowser(fileName = fileName, **kwargs)
     exit_code = execute()
     return exit_code
-    
 
         
 # The main window inherits from a Qt class, therefore it has many 

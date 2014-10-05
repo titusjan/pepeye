@@ -11,3 +11,5 @@ PROGRAM_URL = 'https://github.com/titusjan/pepeye'
 PROGRAM_DIRECTORY = os.path.abspath(os.path.dirname(__file__))
 
 __version__ = PROGRAM_VERSION
+
+
