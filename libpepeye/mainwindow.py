@@ -67,6 +67,11 @@ class MainWindow(QtGui.QMainWindow):
         
         # Model
         self._statsTableModel = StatsTableModel(parent=self, statsObject=None)
+        self._proxyTableModel = QtGui.QSortFilterProxyModel(parent = self)
+        self._proxyTableModel.setSourceModel(self._statsTableModel)
+        self._proxyTableModel.setSortRole(StatsTableModel.SORT_ROLE)
+        self._proxyTableModel.setDynamicSortFilter(True)
+        self._proxyTableModel.setSortCaseSensitivity(Qt.CaseInsensitive)
 
         # Views
         self.__setupActions()
@@ -115,10 +120,14 @@ class MainWindow(QtGui.QMainWindow):
         centralLayout = QtGui.QVBoxLayout()
         self.mainSplitter.setLayout(centralLayout)
         
+        # Table view
         self.tableView = ToggleColumnTableView(self)
-        self.tableView.setModel(self._statsTableModel)
+        #self.tableView.setModel(self._statsTableModel)
+        self.tableView.setModel(self._proxyTableModel)
+        self.tableView.setSortingEnabled(True)
         self.tableView.setWordWrap(False)     
         self.tableView.setShowGrid(False)
+        self.tableView.setCornerButtonEnabled(False)
         #self.tableView.verticalHeader().hide()
         #self.tableView.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers) # needed?
         self.tableView.setAlternatingRowColors(True)

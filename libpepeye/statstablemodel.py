@@ -42,6 +42,8 @@ HEADER_LABELS = [
 class StatsTableModel(QtCore.QAbstractTableModel):
     """ Model for a table view to access pstats from the Python profiles
     """
+    SORT_ROLE = Qt.UserRole
+    
     def __init__(self, parent=None, statsObject=None):
         """ Constructor
         
@@ -152,6 +154,30 @@ class StatsTableModel(QtCore.QAbstractTableModel):
             else:
                 assert False, "BUG: column number = {}".format(col)
 
+        elif role == StatsTableModel.SORT_ROLE:
+            
+            # TODO: get rid of code duplication
+            key = self._sortedKeys[row]
+            value = self._statsDict[key]
+            
+            if col == COL_FILE_LINE:
+                return "{}:{}".format(key[IDX_FILE], key[IDX_LINE])
+            elif col == COL_FUNCTION: 
+                return str(key[IDX_FUNCTION])
+            elif col == COL_N_CALLS:
+                return str(value[IDX_N_CALLS])
+            elif col == COL_TIME:
+                return value[IDX_TIME]
+            elif col == COL_TIME_PER_CALL:
+                return value[IDX_TIME] / value[IDX_N_CALLS]
+            elif col == COL_PRIM_CALLS:
+                return value[IDX_PRIM_CALLS]
+            elif col == COL_CUM_TIME:
+                return value[IDX_CUM_TIME]
+            elif col == COL_CUM_TIME_PER_CALL:
+                return value[IDX_CUM_TIME] / value[IDX_PRIM_CALLS]
+            else:
+                assert False, "BUG: column number = {}".format(col)
         else: # other display roles
             return None 
 

@@ -1,12 +1,9 @@
 
 === Misc ===
 
-Functions to qt.py
 
 === Table View ===
 
-- Elide
-- Sort rows
 - split files in dirname, basename
 
 
