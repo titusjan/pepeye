@@ -12,9 +12,11 @@ from .utils import check_class
 
 if USE_PYQT:
     from PyQt4 import QtCore, QtGui
+    from PyQt4.QtCore import Qt
 else:
     from PySide import QtCore, QtGui
-
+    from PySide.QtCore import Qt
+    
 logger = logging.getLogger(__name__)
 
 
@@ -87,26 +89,37 @@ class StatsTableModel(QtCore.QAbstractTableModel):
     def data(self, index, role):
         """ Returns the data stored under the given role for the item referred to by the index.
         """
-        if not index.isValid() or role != QtCore.Qt.DisplayRole:
+        if not index.isValid():
             return None
 
         row = index.row()
         col = index.column()
-        
+                
         if not (0 <= col < self._nCols):
             return None
         
         if not (0 <= row < self._nRows):
             return None
         
-        if col == 0:
-            key = self._sortedKeys[row]
-            return "{}:{}".format(key[0], key[1])
-        elif col == 1:
-            return str(self._sortedKeys[row][2])
-        else:
-            value = self._statsDict[self._sortedKeys[row]][col - 2]
-            return repr(value)
+        if role == Qt.TextAlignmentRole:
+            if col <= 1:
+                return Qt.AlignLeft
+            else:
+                return Qt.AlignRight
+
+        elif role == QtCore.Qt.DisplayRole:
+            
+            if col == 0:
+                key = self._sortedKeys[row]
+                return "{}:{}".format(key[0], key[1])
+            elif col == 1:
+                return str(self._sortedKeys[row][2])
+            else:
+                value = self._statsDict[self._sortedKeys[row]][col - 2]
+                return "{:g}".format(value)
+
+        else: # other display roles
+            return None 
 
 
     def headerData(self, section, orientation, role):
