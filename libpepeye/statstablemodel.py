@@ -165,7 +165,7 @@ class StatsTableModel(QtCore.QAbstractTableModel):
             elif col == COL_FUNCTION: 
                 return str(key[IDX_FUNCTION])
             elif col == COL_N_CALLS:
-                return str(value[IDX_N_CALLS])
+                return value[IDX_N_CALLS]
             elif col == COL_TIME:
                 return value[IDX_TIME]
             elif col == COL_TIME_PER_CALL:
