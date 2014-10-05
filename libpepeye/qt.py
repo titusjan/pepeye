@@ -4,7 +4,7 @@
 
 """
 
-USE_PYQT = False # Use PySide if False
+USE_PYQT = True # Use PySide if False
 
 if USE_PYQT:
     # This is only needed for Python v2 but is harmless for Python v3.

@@ -121,16 +121,14 @@ class StatsTableModel(QtCore.QAbstractTableModel):
             return None
         
         if role == Qt.TextAlignmentRole:
+            # The cast to int is necessary to avoid a bug in PySide, See:
+            # https://bugreports.qt-project.org/browse/PYSIDE-20
             if col <= 1:
-                return Qt.AlignLeft
-                #return Qt.AlignTop
+                return int(Qt.AlignLeft | Qt.AlignVCenter)
             else:
-                #return Qt.AlignBottom
-                return Qt.AlignRight
-                #return Qt.AlignRight | Qt.AlignBottom
-                #return  Qt.AlignBottom.AlignRight
+                return int(Qt.AlignRight | Qt.AlignVCenter)
                 
-        elif role == QtCore.Qt.DisplayRole:
+        elif role == Qt.DisplayRole:
             
             key = self._sortedKeys[row]
             value = self._statsDict[key]
@@ -162,8 +160,8 @@ class StatsTableModel(QtCore.QAbstractTableModel):
         """ Returns the data for the given role and section in the header with the 
             specified orientation.
         """
-        if role == QtCore.Qt.DisplayRole:
-            if orientation == QtCore.Qt.Orientation.Horizontal:
+        if role == Qt.DisplayRole:
+            if orientation == Qt.Horizontal:
                 return self._headerLabels[section]
             else:
                 return str(section + 1)

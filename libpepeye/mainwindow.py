@@ -10,7 +10,7 @@ import logging, sys, pstats
 from .version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING
 from .utils import check_class
 
-from .qt import QtCore, QtGui
+from .qt import QtCore, QtGui, USE_PYQT
 
 from .statstablemodel import StatsTableModel
 from .togglecolumn import ToggleColumnTableView
@@ -102,7 +102,7 @@ class MainWindow(QtGui.QMainWindow):
         app = QtGui.QApplication.instance()
         app.lastWindowClosed.connect(app.quit) 
 
-        self._readViewSettings(reset = reset) # TODO: enable
+        self._readViewSettings(reset = reset)
             
         logger.debug("MainWindow constructor finished")
      
@@ -142,6 +142,7 @@ class MainWindow(QtGui.QMainWindow):
         self.mainSplitter.setLayout(centralLayout)
         
         self.tableView = ToggleColumnTableView(self)
+        self.tableView.setWordWrap(False)     
         self.tableView.setShowGrid(False)
         #self.tableView.verticalHeader().hide()
         #self.tableView.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers) # needed?
@@ -170,14 +171,17 @@ class MainWindow(QtGui.QMainWindow):
         #stats.strip_dirs()
         #stats.calc_callees()
         
-                     
 
     def openStatsFile(self, fileName=None):
         """ Lets the user select a pstats file and opens it.
         """
         if not fileName:
-            fileName = QtGui.QFileDialog.getOpenFileName(self, # TODO: PYQT
-                "Choose a pstats file", '', 'All files (*.*)')[0]
+            fileName = QtGui.QFileDialog.getOpenFileName(self, 
+                caption = "Choose a pstats file", directory = '', 
+                filter='All files (*);;Profile statistics (*.prof; *.pro)')
+            if not USE_PYQT:
+                # PySide returns: (file, selectedFilter)
+                fileName = fileName[0]
 
         if fileName:
             logger.info("Loading data from: {!r}".format(fileName))
@@ -222,7 +226,6 @@ class MainWindow(QtGui.QMainWindow):
         logger.debug("windowSize: {!r}".format(windowSize))
         self.resize(windowSize)
         self.move(pos)
-
 
 
     def _writeViewSettings(self):
