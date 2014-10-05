@@ -145,8 +145,12 @@ class MainWindow(QtGui.QMainWindow):
         self.mainSplitter.setLayout(centralLayout)
         
         self.tableView = ToggleColumnTableView(self)
-        self.tableView.setShowGrid(True)
+        self.tableView.setShowGrid(False)
         #self.tableView.verticalHeader().hide()
+        #self.tableView.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers) # needed?
+        self.tableView.setAlternatingRowColors(True)
+        self.tableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        
         self.tableView.setModel(self._statsTableModel)
         centralLayout.addWidget(self.tableView)        
         
@@ -164,6 +168,7 @@ class MainWindow(QtGui.QMainWindow):
         logger.debug("Loading file: {}".format(fileName))
         pStats = pstats.Stats(fileName)
         self._statsTableModel.setStats(statsObject=pStats)
+        self.tableView.resizeRowsToContents() # Still a bit slow? Should aim for fixed height?
         
         #stats.strip_dirs()
         #stats.calc_callees()
@@ -240,6 +245,7 @@ class MainWindow(QtGui.QMainWindow):
     def myTest(self):
         """ Function for testing """
         logger.debug("myTest")
+        logger.debug("row height: {}".format(self.tableView.rowHeight(0)))
         
     def about(self):
         """ Shows the about message window. """
