@@ -7,42 +7,60 @@ from __future__ import division
 
 import logging, pstats
 
-from .qt import QtCore, QtGui, Qt
+from .qt import QtCore, Qt
 from .utils import check_class
     
 logger = logging.getLogger(__name__)
 
 
-# Stats key tuple indices
-IDX_FILE = 0
-IDX_LINE = 1
-IDX_FUNCTION = 2
+class StatRow(object):
+    """ Class that contains the data for one profile statistic
+    """
+    def __init__(self, statsKey, statsValue):
+        """ Constructor which is intialized from a key, value pair of a pstats.stats
+            dictionary.
+            
+            :param stats_key: (file, line_nr, function) tuple
+            :param stats_value: (prim_calls, n_calls, time, cum_time, caller_dict) tuple
+        """
+        (self.fileName, self.lineNr, self.functionName) = statsKey 
+        (self.nPrimCalls, self.nCalls, self.time, self.cumTime, _) = statsValue
 
-# Stats value tuple indices
-IDX_PRIM_CALLS = 0
-IDX_N_CALLS = 1
-IDX_TIME = 2
-IDX_CUM_TIME = 3
-
-COL_FILE_LINE = 0
-COL_FUNCTION = 1
-COL_N_CALLS = 2
-COL_TIME = 3
-COL_TIME_PER_CALL = 4
-COL_PRIM_CALLS = 5
-COL_CUM_TIME = 6
-COL_CUM_TIME_PER_CALL = 7
-
-HEADER_LABELS = [
-    'file:line', 'function', 
-    'calls', 'time', 'time per call',  
-    'primitive calls', 'cumulative time', 'cumulative time per call']
-
+    @property
+    def fileAndLine(self):
+        """ File name and line number separated by a colon"""
+        return "{}:{}".format(self.fileName, self.lineNr)
+        
+    @property
+    def timePerCall(self):
+        """ Seconds spend per function call."""
+        return self.time / self.nCalls
+    
+    @property
+    def cumTimePerCall(self):
+        """ Cumulative time spend per function call."""
+        return self.cumTime / self.nPrimCalls
+          
+          
 
 class StatsTableModel(QtCore.QAbstractTableModel):
     """ Model for a table view to access pstats from the Python profiles
     """
     SORT_ROLE = Qt.UserRole
+    
+    COL_FILE_LINE = 0
+    COL_FUNCTION = 1
+    COL_N_CALLS = 2
+    COL_TIME = 3
+    COL_TIME_PER_CALL = 4
+    COL_PRIM_CALLS = 5
+    COL_CUM_TIME = 6
+    COL_CUM_TIME_PER_CALL = 7
+    
+    HEADER_LABELS = [
+        'file:line', 'function', 
+        'calls', 'time', 'time per call',  
+        'primitive calls', 'cumulative time', 'cumulative time per call']
     
     def __init__(self, parent=None, statsObject=None):
         """ Constructor
@@ -51,20 +69,17 @@ class StatsTableModel(QtCore.QAbstractTableModel):
             :type  stats: pstats.Stats
         """
         super(StatsTableModel, self).__init__(parent)
-        
-        self._headerLabels = HEADER_LABELS
-        self._nCols = len(self._headerLabels)
+        self._nCols = len(self.HEADER_LABELS)
 
         # These attributes will be set in setStats        
         self._statsObject = None
-        self._statsDict = {}
-        self._sortedKeys = []
+        self._statRows = []
         self._nRows = 0
         
     @property
     def headerLabels(self):
         "Returns list of header labels"
-        return self._headerLabels
+        return self.HEADER_LABELS
         
 
     def setStats(self, statsObject):
@@ -83,14 +98,12 @@ class StatsTableModel(QtCore.QAbstractTableModel):
         self.beginResetModel()
         if statsObject is None:
             self._statsObject = None
-            self._statsDict = {}
-            self._sortedKeys = []
+            self._statRows = []
             self._nRows = 0
         else:
             self._statsObject = statsObject
-            self._statsDict = statsObject.stats
-            self._sortedKeys = self._statsDict.keys()
-            self._nRows = len(self._sortedKeys)
+            self._statRows = [StatRow(k, v) for (k, v) in statsObject.stats.iteritems()]
+            self._nRows = len(self._statRows)
 
         self.endResetModel()
         
@@ -132,52 +145,50 @@ class StatsTableModel(QtCore.QAbstractTableModel):
                 
         elif role == Qt.DisplayRole:
             
-            key = self._sortedKeys[row]
-            value = self._statsDict[key]
+            stat = self._statRows[row]
             
-            if col == COL_FILE_LINE:
-                return "{}:{}".format(key[IDX_FILE], key[IDX_LINE])
-            elif col == COL_FUNCTION: 
-                return str(key[IDX_FUNCTION])
-            elif col == COL_N_CALLS:
-                return str(value[IDX_N_CALLS])
-            elif col == COL_TIME:
-                return "{:.3f}".format(value[IDX_TIME])
-            elif col == COL_TIME_PER_CALL:
-                return "{:.4f}".format(value[IDX_TIME] / value[IDX_N_CALLS])
-            elif col == COL_PRIM_CALLS:
-                return str(value[IDX_PRIM_CALLS])
-            elif col == COL_CUM_TIME:
-                return "{:.3f}".format(value[IDX_CUM_TIME])
-            elif col == COL_CUM_TIME_PER_CALL:
-                return "{:.4f}".format(value[IDX_CUM_TIME] / value[IDX_PRIM_CALLS])
+            if col == StatsTableModel.COL_FILE_LINE:
+                return stat.fileAndLine
+            elif col == StatsTableModel.COL_FUNCTION: 
+                return stat.functionName
+            elif col == StatsTableModel.COL_N_CALLS:
+                return str(stat.nCalls)
+            elif col == StatsTableModel.COL_TIME:
+                return "{:.3f}".format(stat.time)
+            elif col == StatsTableModel.COL_TIME_PER_CALL:
+                return "{:.4f}".format(stat.timePerCall)
+            elif col == StatsTableModel.COL_PRIM_CALLS:
+                return str(stat.nPrimCalls)
+            elif col == StatsTableModel.COL_CUM_TIME:
+                return "{:.3f}".format(stat.cumTime)
+            elif col == StatsTableModel.COL_CUM_TIME_PER_CALL:
+                return "{:.4f}".format(stat.cumTimePerCall)
             else:
                 assert False, "BUG: column number = {}".format(col)
 
         elif role == StatsTableModel.SORT_ROLE:
             
-            # TODO: get rid of code duplication
-            key = self._sortedKeys[row]
-            value = self._statsDict[key]
+            stat = self._statRows[row]
             
-            if col == COL_FILE_LINE:
-                return "{}:{}".format(key[IDX_FILE], key[IDX_LINE])
-            elif col == COL_FUNCTION: 
-                return str(key[IDX_FUNCTION])
-            elif col == COL_N_CALLS:
-                return value[IDX_N_CALLS]
-            elif col == COL_TIME:
-                return value[IDX_TIME]
-            elif col == COL_TIME_PER_CALL:
-                return value[IDX_TIME] / value[IDX_N_CALLS]
-            elif col == COL_PRIM_CALLS:
-                return value[IDX_PRIM_CALLS]
-            elif col == COL_CUM_TIME:
-                return value[IDX_CUM_TIME]
-            elif col == COL_CUM_TIME_PER_CALL:
-                return value[IDX_CUM_TIME] / value[IDX_PRIM_CALLS]
+            if col == StatsTableModel.COL_FILE_LINE:
+                return stat.fileAndLine
+            elif col == StatsTableModel.COL_FUNCTION: 
+                return stat.functionName
+            elif col == StatsTableModel.COL_N_CALLS:
+                return stat.nCalls
+            elif col == StatsTableModel.COL_TIME:
+                return stat.time
+            elif col == StatsTableModel.COL_TIME_PER_CALL:
+                return stat.timePerCall
+            elif col == StatsTableModel.COL_PRIM_CALLS:
+                return stat.nPrimCalls
+            elif col == StatsTableModel.COL_CUM_TIME:
+                return stat.cumTime
+            elif col == StatsTableModel.COL_CUM_TIME_PER_CALL:
+                return stat.cumTimePerCall
             else:
                 assert False, "BUG: column number = {}".format(col)
+           
         else: # other display roles
             return None 
 
@@ -188,7 +199,7 @@ class StatsTableModel(QtCore.QAbstractTableModel):
         """
         if role == Qt.DisplayRole:
             if orientation == Qt.Horizontal:
-                return self._headerLabels[section]
+                return self.HEADER_LABELS[section]
             else:
                 return str(section + 1)
         else:
