@@ -5,7 +5,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
 
-import logging, pstats
+import logging, pstats, os
 
 from .qt import QtCore, Qt
 from .utils import check_class
@@ -23,13 +23,20 @@ class StatRow(object):
             :param stats_key: (file, line_nr, function) tuple
             :param stats_value: (prim_calls, n_calls, time, cum_time, caller_dict) tuple
         """
-        (self.fileName, self.lineNr, self.functionName) = statsKey 
+        (self.filePath, self.lineNr, self.functionName) = statsKey 
         (self.nPrimCalls, self.nCalls, self.time, self.cumTime, _) = statsValue
+        
+        self.fileName = os.path.basename(self.filePath)
 
     @property
     def fileAndLine(self):
         """ File name and line number separated by a colon"""
         return "{}:{}".format(self.fileName, self.lineNr)
+
+    @property
+    def pathAndLine(self):
+        """ Full file path and line number separated by a colon"""
+        return "{}:{}".format(self.filePath, self.lineNr)
         
     @property
     def timePerCall(self):
@@ -48,17 +55,18 @@ class StatsTableModel(QtCore.QAbstractTableModel):
     """
     SORT_ROLE = Qt.UserRole
     
-    COL_FILE_LINE = 0
-    COL_FUNCTION = 1
-    COL_N_CALLS = 2
-    COL_TIME = 3
-    COL_TIME_PER_CALL = 4
-    COL_PRIM_CALLS = 5
-    COL_CUM_TIME = 6
-    COL_CUM_TIME_PER_CALL = 7
+    COL_PATH_LINE = 0
+    COL_FILE_LINE = 1
+    COL_FUNCTION = 2
+    COL_N_CALLS = 3
+    COL_TIME = 4
+    COL_TIME_PER_CALL = 5
+    COL_PRIM_CALLS = 6
+    COL_CUM_TIME = 7
+    COL_CUM_TIME_PER_CALL = 8
     
     HEADER_LABELS = [
-        'file:line', 'function', 
+        'path:line', 'file:line', 'function', 
         'calls', 'time', 'time per call',  
         'primitive calls', 'cumulative time', 'cumulative time per call']
     
@@ -147,7 +155,9 @@ class StatsTableModel(QtCore.QAbstractTableModel):
             
             stat = self._statRows[row]
             
-            if col == StatsTableModel.COL_FILE_LINE:
+            if col == StatsTableModel.COL_PATH_LINE:
+                return stat.pathAndLine
+            elif col == StatsTableModel.COL_FILE_LINE:
                 return stat.fileAndLine
             elif col == StatsTableModel.COL_FUNCTION: 
                 return stat.functionName
@@ -170,7 +180,9 @@ class StatsTableModel(QtCore.QAbstractTableModel):
             
             stat = self._statRows[row]
             
-            if col == StatsTableModel.COL_FILE_LINE:
+            if col == StatsTableModel.COL_PATH_LINE:
+                return stat.pathAndLine
+            elif col == StatsTableModel.COL_FILE_LINE:
                 return stat.fileAndLine
             elif col == StatsTableModel.COL_FUNCTION: 
                 return stat.functionName
