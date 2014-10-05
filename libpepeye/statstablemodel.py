@@ -20,6 +20,28 @@ else:
 logger = logging.getLogger(__name__)
 
 
+# Stats key tuple indices
+IDX_FILE = 0
+IDX_LINE = 1
+IDX_FUNCTION = 2
+
+# Stats value tuple indices
+IDX_PRIM_CALLS = 0
+IDX_N_CALLS = 1
+IDX_TIME = 2
+IDX_CUM_TIME = 3
+
+COL_FILE_LINE = 0
+COL_FUNCTION = 1
+COL_PRIM_CALLS = 2
+COL_N_CALLS = 3
+COL_TIME = 4
+COL_CUM_TIME = 5
+
+HEADER_LABELS = [
+    'file:line', 'function', 
+    'primitive calls', 'calls', 
+    'time', 'cumulative time']
 
 
 class StatsTableModel(QtCore.QAbstractTableModel):
@@ -33,7 +55,7 @@ class StatsTableModel(QtCore.QAbstractTableModel):
         """
         super(StatsTableModel, self).__init__(parent)
         
-        self._headerLabels = ['file:line', 'function', '1', '2', '3', '4']
+        self._headerLabels = HEADER_LABELS
         self._nCols = len(self._headerLabels)
 
         # These attributes will be set in setStats        
@@ -51,9 +73,11 @@ class StatsTableModel(QtCore.QAbstractTableModel):
     def setStats(self, statsObject):
         """ Sets the statistics
         
-            The statsObject.stats attribute is a dictionary where 
-            the keys consist of a (file, line_nr, function) tuple and 
-            the values consist of a (?, ?, ?, ?, caller_dict) tuple
+            The statsObject.stats attribute is a dictionary where the keys consist of a 
+            (file, line_nr, function) tuple and the values consist of a 
+            (primitive_calls, n_calls, time, cumulative_time, caller_dict) tuple
+
+            Primitive calls are calls that where not induced via recursion
         
             :param statsObject: profiler statistics. Use None to clear.
             :type  statsObject: pstats.Stats or None
@@ -104,19 +128,32 @@ class StatsTableModel(QtCore.QAbstractTableModel):
         if role == Qt.TextAlignmentRole:
             if col <= 1:
                 return Qt.AlignLeft
+                #return Qt.AlignTop
             else:
+                #return Qt.AlignBottom
                 return Qt.AlignRight
-
+                #return Qt.AlignRight | Qt.AlignBottom
+                #return  Qt.AlignBottom.AlignRight
+                
         elif role == QtCore.Qt.DisplayRole:
             
-            if col == 0:
-                key = self._sortedKeys[row]
-                return "{}:{}".format(key[0], key[1])
-            elif col == 1:
-                return str(self._sortedKeys[row][2])
+            key = self._sortedKeys[row]
+            value = self._statsDict[key]
+            
+            if col == COL_FILE_LINE:
+                return "{}:{}".format(key[IDX_FILE], key[IDX_LINE])
+            elif col == COL_FUNCTION: 
+                return str(key[IDX_FUNCTION])
+            elif col == COL_PRIM_CALLS:
+                return str(value[IDX_PRIM_CALLS])
+            elif col == COL_N_CALLS:
+                return str(value[IDX_N_CALLS])
+            elif col == COL_TIME:
+                return "{:.3f}".format(value[IDX_TIME])
+            elif col == COL_CUM_TIME:
+                return "{:.3f}".format(value[IDX_CUM_TIME])
             else:
-                value = self._statsDict[self._sortedKeys[row]][col - 2]
-                return "{:g}".format(value)
+                assert False, "BUG: column number = {}".format(col)
 
         else: # other display roles
             return None 
