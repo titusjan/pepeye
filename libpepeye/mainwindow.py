@@ -8,7 +8,7 @@ from __future__ import division
 import logging, pstats
 
 from .version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING
-from .qt import QtCore, QtGui, USE_PYQT, APPLICATION_INSTANCE
+from .qt import Qt, QtCore, QtGui, USE_PYQT, APPLICATION_INSTANCE
 
 from .statstablemodel import StatsTableModel
 from .togglecolumn import ToggleColumnTableView
@@ -128,6 +128,7 @@ class MainWindow(QtGui.QMainWindow):
         
         tableHorHeader = self.tableView.horizontalHeader()
         tableHorHeader.setMovable(True)
+        tableHorHeader.setTextElideMode(Qt.ElideMiddle)
         tableHorHeader.setStretchLastSection(False)
         
         tableVerHeader = self.tableView.verticalHeader()
