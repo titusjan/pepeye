@@ -33,18 +33,17 @@ IDX_CUM_TIME = 3
 
 COL_FILE_LINE = 0
 COL_FUNCTION = 1
-COL_PRIM_CALLS = 2
-COL_N_CALLS = 3
-COL_TIME = 4
-COL_TIME_PER_CALL = 5
+COL_N_CALLS = 2
+COL_TIME = 3
+COL_TIME_PER_CALL = 4
+COL_PRIM_CALLS = 5
 COL_CUM_TIME = 6
 COL_CUM_TIME_PER_CALL = 7
 
 HEADER_LABELS = [
     'file:line', 'function', 
-    'primitive calls', 'calls', 
-    'time', 'time per call',  
-    'cumulative time', 'cumulative time per call']
+    'calls', 'time', 'time per call',  
+    'primitive calls', 'cumulative time', 'cumulative time per call']
 
 
 class StatsTableModel(QtCore.QAbstractTableModel):
@@ -147,14 +146,14 @@ class StatsTableModel(QtCore.QAbstractTableModel):
                 return "{}:{}".format(key[IDX_FILE], key[IDX_LINE])
             elif col == COL_FUNCTION: 
                 return str(key[IDX_FUNCTION])
-            elif col == COL_PRIM_CALLS:
-                return str(value[IDX_PRIM_CALLS])
             elif col == COL_N_CALLS:
                 return str(value[IDX_N_CALLS])
             elif col == COL_TIME:
                 return "{:.3f}".format(value[IDX_TIME])
             elif col == COL_TIME_PER_CALL:
                 return "{:.4f}".format(value[IDX_TIME] / value[IDX_N_CALLS])
+            elif col == COL_PRIM_CALLS:
+                return str(value[IDX_PRIM_CALLS])
             elif col == COL_CUM_TIME:
                 return "{:.3f}".format(value[IDX_CUM_TIME])
             elif col == COL_CUM_TIME_PER_CALL:
