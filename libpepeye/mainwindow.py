@@ -124,12 +124,14 @@ class MainWindow(QtGui.QMainWindow):
         self.tableView.setAlternatingRowColors(True)
         self.tableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tableView.addHeaderContextMenu(enabled = {'function': False}, checked = {})
-        
-        tableViewHeader = self.tableView.horizontalHeader()
-        tableViewHeader.setMovable(True)
-        tableViewHeader.setStretchLastSection(False)
-        
         centralLayout.addWidget(self.tableView)        
+        
+        tableHorHeader = self.tableView.horizontalHeader()
+        tableHorHeader.setMovable(True)
+        tableHorHeader.setStretchLastSection(False)
+        
+        tableVerHeader = self.tableView.verticalHeader()
+        tableVerHeader.setResizeMode(QtGui.QHeaderView.ResizeToContents)
         
         self.label = QtGui.QLabel("Hi there", parent=self)
         centralLayout.addWidget(self.label)        
@@ -145,10 +147,8 @@ class MainWindow(QtGui.QMainWindow):
         logger.debug("Loading file: {}".format(fileName))
         pStats = pstats.Stats(fileName)
         self._statsTableModel.setStats(statsObject=pStats)
-        self.tableView.resizeRowsToContents() # Still a bit slow? Should aim for fixed height?
-        
-        #stats.strip_dirs()
-        #stats.calc_callees()
+        #pStats.strip_dirs()
+        #pStats.calc_callees()
         
 
     def openStatsFile(self, fileName=None):

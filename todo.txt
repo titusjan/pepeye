@@ -5,10 +5,6 @@ Functions to qt.py
 
 === Table View ===
 
-- Select columns
-- Resize columns
-- Reorder columns
-- Fixed row size (vheader)
 - Elide
 - Sort rows
 - split files in dirname, basename
