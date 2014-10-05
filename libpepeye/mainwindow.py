@@ -10,7 +10,7 @@ import logging, pstats
 from .version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING
 from .qt import Qt, QtCore, QtGui, USE_PYQT, APPLICATION_INSTANCE
 
-from .statstablemodel import StatsTableModel
+from .statstablemodel import StatsTableModel, COL_CUM_TIME
 from .togglecolumn import ToggleColumnTableView
 
 logger = logging.getLogger(__name__)
@@ -125,6 +125,7 @@ class MainWindow(QtGui.QMainWindow):
         #self.tableView.setModel(self._statsTableModel)
         self.tableView.setModel(self._proxyTableModel)
         self.tableView.setSortingEnabled(True)
+        self.tableView.sortByColumn(COL_CUM_TIME, Qt.DescendingOrder)
         self.tableView.setWordWrap(False)     
         self.tableView.setShowGrid(False)
         self.tableView.setCornerButtonEnabled(False)
