@@ -51,7 +51,7 @@ def main():
         print(about_str)
         sys.exit(0)
 
-    browse(fileName = args.file_name)
+    browse(fileName = args.file_name, reset=args.reset)
     logger.info('Done {}'.format(PROGRAM_NAME))
   
 if __name__ == "__main__":

@@ -124,11 +124,10 @@ class MainWindow(QtGui.QMainWindow):
         self.tableView.setAlternatingRowColors(True)
         self.tableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tableView.addHeaderContextMenu(enabled = {'function': False}, checked = {})
-        #self.tableView.addHeaderContextMenu()
         
         tableViewHeader = self.tableView.horizontalHeader()
         tableViewHeader.setMovable(True)
-        tableViewHeader.setStretchLastSection(True)
+        tableViewHeader.setStretchLastSection(False)
         
         centralLayout.addWidget(self.tableView)        
         
