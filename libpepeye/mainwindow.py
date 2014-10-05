@@ -7,13 +7,10 @@ from __future__ import division
 
 import logging, sys, pstats
 
-from .version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING, USE_PYQT
+from .version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING
 from .utils import check_class
 
-if USE_PYQT:
-    from PyQt4 import QtCore, QtGui
-else:
-    from PySide import QtCore, QtGui
+from .qt import QtCore, QtGui
 
 from .statstablemodel import StatsTableModel
 from .togglecolumn import ToggleColumnTableView

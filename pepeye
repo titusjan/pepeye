@@ -5,7 +5,8 @@ from __future__ import print_function
 import logging, sys, argparse
 
 from libpepeye.mainwindow import browse
-from libpepeye.version import USE_PYQT, PROGRAM_NAME, PROGRAM_VERSION, DEBUGGING
+from libpepeye.qt import USE_PYQT
+from libpepeye.version import PROGRAM_NAME, PROGRAM_VERSION, DEBUGGING
 
 logger = logging.getLogger(__name__)
 

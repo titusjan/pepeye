@@ -7,15 +7,8 @@ from __future__ import division
 
 import logging, pstats
 
-from .version import USE_PYQT
+from .qt import QtCore, QtGui, Qt
 from .utils import check_class
-
-if USE_PYQT:
-    from PyQt4 import QtCore, QtGui
-    from PyQt4.QtCore import Qt
-else:
-    from PySide import QtCore, QtGui
-    from PySide.QtCore import Qt
     
 logger = logging.getLogger(__name__)
 

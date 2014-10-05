@@ -3,14 +3,8 @@
 from __future__ import print_function
 
 import logging
-from .version import USE_PYQT
 
-if USE_PYQT:
-    from PyQt4 import QtCore, QtGui
-    from PyQt4.QtCore import Qt
-else:
-    from PySide import QtCore, QtGui
-    from PySide.QtCore import Qt
+from .qt import QtCore, QtGui, Qt
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +32,7 @@ class ToggleColumnMixIn(object):
         enabled = enabled if enabled is not None else {}
         
         horizontal_header = self._horizontalHeader()
-        horizontal_header.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
+        horizontal_header.setContextMenuPolicy(Qt.ActionsContextMenu)
 
         self.toggle_column_actions_group = QtGui.QActionGroup(self)
         self.toggle_column_actions_group.setExclusive(False)
