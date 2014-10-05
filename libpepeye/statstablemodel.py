@@ -36,12 +36,15 @@ COL_FUNCTION = 1
 COL_PRIM_CALLS = 2
 COL_N_CALLS = 3
 COL_TIME = 4
-COL_CUM_TIME = 5
+COL_TIME_PER_CALL = 5
+COL_CUM_TIME = 6
+COL_CUM_TIME_PER_CALL = 7
 
 HEADER_LABELS = [
     'file:line', 'function', 
     'primitive calls', 'calls', 
-    'time', 'cumulative time']
+    'time', 'time per call',  
+    'cumulative time', 'cumulative time per call']
 
 
 class StatsTableModel(QtCore.QAbstractTableModel):
@@ -150,8 +153,12 @@ class StatsTableModel(QtCore.QAbstractTableModel):
                 return str(value[IDX_N_CALLS])
             elif col == COL_TIME:
                 return "{:.3f}".format(value[IDX_TIME])
+            elif col == COL_TIME_PER_CALL:
+                return "{:.4f}".format(value[IDX_TIME] / value[IDX_N_CALLS])
             elif col == COL_CUM_TIME:
                 return "{:.3f}".format(value[IDX_CUM_TIME])
+            elif col == COL_CUM_TIME_PER_CALL:
+                return "{:.4f}".format(value[IDX_CUM_TIME] / value[IDX_PRIM_CALLS])
             else:
                 assert False, "BUG: column number = {}".format(col)
 
