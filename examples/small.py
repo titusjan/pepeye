@@ -8,10 +8,14 @@ def myfun1():
     sleep(0.25)
     myfun3()
     
-def myfun2():
+def myfun2(n):
     print ("  myfun2")
     sleep(0.15)
-    myfun3()
+    if n == 0:
+        return
+    else:
+        myfun3()
+        myfun2(n-1)
     
 def myfun3():
     print ("    myfun3")
@@ -23,8 +27,7 @@ def main():
     for i in range(10):
         myfun1()
         
-    for i in range(15):
-        myfun2()
+    myfun2(15)
 
 if __name__ == "__main__":
     main()
