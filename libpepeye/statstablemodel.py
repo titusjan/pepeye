@@ -7,7 +7,7 @@ from __future__ import division
 
 import logging, pstats, os
 
-from .qt import QtCore, Qt
+from .qt import QtCore, QtGui, Qt
 from .utils import check_class
     
 logger = logging.getLogger(__name__)
@@ -146,7 +146,7 @@ class StatsTableModel(QtCore.QAbstractTableModel):
         if role == Qt.TextAlignmentRole:
             # The cast to int is necessary to avoid a bug in PySide, See:
             # https://bugreports.qt-project.org/browse/PYSIDE-20
-            if col <= 1:
+            if col <= 2:
                 return int(Qt.AlignLeft | Qt.AlignVCenter)
             else:
                 return int(Qt.AlignRight | Qt.AlignVCenter)
@@ -181,23 +181,23 @@ class StatsTableModel(QtCore.QAbstractTableModel):
             stat = self._statRows[row]
             
             if col == StatsTableModel.COL_PATH_LINE:
-                return stat.pathAndLine
+                return (stat.filePath, stat.lineNr, stat.functionName)
             elif col == StatsTableModel.COL_FILE_LINE:
-                return stat.fileAndLine
+                return (stat.file, stat.lineNr, stat.filePath, stat.functionName)
             elif col == StatsTableModel.COL_FUNCTION: 
-                return stat.functionName
+                return (stat.functionName, stat.filePath, stat.lineNr, stat.functionName)
             elif col == StatsTableModel.COL_N_CALLS:
-                return stat.nCalls
+                return (stat.nCalls, stat.nPrimCalls, stat.filePath, stat.lineNr, stat.functionName)
             elif col == StatsTableModel.COL_TIME:
-                return stat.time
+                return (stat.time, stat.filePath, stat.lineNr, stat.functionName)
             elif col == StatsTableModel.COL_TIME_PER_CALL:
-                return stat.timePerCall
+                return (stat.timePerCall, stat.filePath, stat.lineNr, stat.functionName)
             elif col == StatsTableModel.COL_PRIM_CALLS:
-                return stat.nPrimCalls
+                return (stat.nPrimCalls, stat.nCalls, stat.filePath, stat.lineNr, stat.functionName)
             elif col == StatsTableModel.COL_CUM_TIME:
-                return stat.cumTime
+                return (stat.cumTime, stat.filePath, stat.lineNr, stat.functionName)
             elif col == StatsTableModel.COL_CUM_TIME_PER_CALL:
-                return stat.cumTimePerCall
+                return (stat.cumTimePerCall, stat.filePath, stat.lineNr, stat.functionName)
             else:
                 assert False, "BUG: column number = {}".format(col)
            
@@ -217,4 +217,36 @@ class StatsTableModel(QtCore.QAbstractTableModel):
         else:
             return None
     
+    
+class StatsTableProxyModel(QtGui.QSortFilterProxyModel):
+    """ Proxy model that overrides the sorting
+    
+        TODO: needed?
+    """
+    def __init__(self, parent):
+        super(StatsTableProxyModel, self).__init__(parent)
+
+
+    def  lessThan(self, leftIndex, rightIndex):
+         
+        leftData  = self.sourceModel().data(leftIndex,  StatsTableModel.SORT_ROLE)
+        rightData = self.sourceModel().data(rightIndex, StatsTableModel.SORT_ROLE)
+        
+        if leftData != rightData:
+            return leftData < rightData
+        else:
+            # If the data is the same we fall back on the PATH
+            leftRow = leftIndex.row()
+            leftPathIndex = leftIndex.sibling(leftRow, StatsTableModel.COL_PATH_LINE)
+            leftPath = self.sourceModel().data(leftPathIndex, StatsTableModel.SORT_ROLE)
+
+            rightRow = rightIndex.row()
+            rightPathIndex = leftIndex.sibling(rightRow, StatsTableModel.COL_PATH_LINE)
+            rightPath = self.sourceModel().data(rightPathIndex, StatsTableModel.SORT_ROLE)
+            
+            logger.debug("StatsTableProxyModel: ({:2d}, {:2d}) ({:2d}, {:2d}), {} < {} = {}"
+                         .format(leftRow, StatsTableModel.COL_PATH_LINE, rightRow, StatsTableModel.COL_PATH_LINE, 
+                                 leftPath, rightPath, (leftPath < rightPath)))
+
+            return leftPath < rightPath
     

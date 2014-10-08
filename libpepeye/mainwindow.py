@@ -10,7 +10,7 @@ import logging, pstats
 from .version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING
 from .qt import Qt, QtCore, QtGui, USE_PYQT, APPLICATION_INSTANCE
 
-from .statstablemodel import StatsTableModel
+from .statstablemodel import StatsTableModel, StatsTableProxyModel
 from .togglecolumn import ToggleColumnTableView
 
 logger = logging.getLogger(__name__)
@@ -67,7 +67,8 @@ class MainWindow(QtGui.QMainWindow):
         
         # Model
         self._statsTableModel = StatsTableModel(parent=self, statsObject=None)
-        self._proxyTableModel = QtGui.QSortFilterProxyModel(parent = self)
+        #self._proxyTableModel = QtGui.QSortFilterProxyModel(parent = self)
+        self._proxyTableModel = StatsTableProxyModel(parent = self)
         self._proxyTableModel.setSourceModel(self._statsTableModel)
         self._proxyTableModel.setSortRole(StatsTableModel.SORT_ROLE)
         self._proxyTableModel.setDynamicSortFilter(True)
