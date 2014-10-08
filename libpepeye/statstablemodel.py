@@ -183,7 +183,7 @@ class StatsTableModel(QtCore.QAbstractTableModel):
             if col == StatsTableModel.COL_PATH_LINE:
                 return (stat.filePath, stat.lineNr, stat.functionName)
             elif col == StatsTableModel.COL_FILE_LINE:
-                return (stat.file, stat.lineNr, stat.filePath, stat.functionName)
+                return (stat.fileName, stat.lineNr, stat.filePath, stat.functionName)
             elif col == StatsTableModel.COL_FUNCTION: 
                 return (stat.functionName, stat.filePath, stat.lineNr, stat.functionName)
             elif col == StatsTableModel.COL_N_CALLS:
@@ -249,4 +249,18 @@ class StatsTableProxyModel(QtGui.QSortFilterProxyModel):
                                  leftPath, rightPath, (leftPath < rightPath)))
 
             return leftPath < rightPath
+        
+        
+    def headerData(self, section, orientation, role):
+        """ Returns the data for the given role and section in the header with the 
+            specified orientation.
+        """
+        # Take horizontal headers from the source model but override the vertical header
+        if role == Qt.DisplayRole:
+            if orientation == Qt.Horizontal:
+                return self.sourceModel().headerData(section, orientation, role)
+            else:
+                return str(section + 1)
+        else:
+            return None        
     
