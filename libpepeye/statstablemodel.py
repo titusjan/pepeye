@@ -219,36 +219,22 @@ class StatsTableModel(QtCore.QAbstractTableModel):
     
     
 class StatsTableProxyModel(QtGui.QSortFilterProxyModel):
-    """ Proxy model that overrides the sorting
-    
-        TODO: needed?
+    """ Proxy model that overrides the sorting.
+
+        Needed to override the vertical header to always be increasing.
     """
     def __init__(self, parent):
         super(StatsTableProxyModel, self).__init__(parent)
 
 
-    def  lessThan(self, leftIndex, rightIndex):
-         
+    def lessThan(self, leftIndex, rightIndex):
+        """ Returns true if the value of the item referred to by the given index left is less than 
+            the value of the item referred to by the given index right, otherwise returns false.
+        """
         leftData  = self.sourceModel().data(leftIndex,  StatsTableModel.SORT_ROLE)
         rightData = self.sourceModel().data(rightIndex, StatsTableModel.SORT_ROLE)
         
-        if leftData != rightData:
-            return leftData < rightData
-        else:
-            # If the data is the same we fall back on the PATH
-            leftRow = leftIndex.row()
-            leftPathIndex = leftIndex.sibling(leftRow, StatsTableModel.COL_PATH_LINE)
-            leftPath = self.sourceModel().data(leftPathIndex, StatsTableModel.SORT_ROLE)
-
-            rightRow = rightIndex.row()
-            rightPathIndex = leftIndex.sibling(rightRow, StatsTableModel.COL_PATH_LINE)
-            rightPath = self.sourceModel().data(rightPathIndex, StatsTableModel.SORT_ROLE)
-            
-            logger.debug("StatsTableProxyModel: ({:2d}, {:2d}) ({:2d}, {:2d}), {} < {} = {}"
-                         .format(leftRow, StatsTableModel.COL_PATH_LINE, rightRow, StatsTableModel.COL_PATH_LINE, 
-                                 leftPath, rightPath, (leftPath < rightPath)))
-
-            return leftPath < rightPath
+        return leftData < rightData
         
         
     def headerData(self, section, orientation, role):
