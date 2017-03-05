@@ -20,6 +20,12 @@ def myfun2(n):
 def myfun3():
     print ("    myfun3")
     sleep(0.05)
+    myfun4()
+    
+    
+def myfun4():
+    print ("      myfun4")
+    sleep(0.003)
     
 
 def main():

@@ -17,14 +17,14 @@ class StatRow(object):
     """ Class that contains the data for one profile statistic
     """
     def __init__(self, statsKey, statsValue):
-        """ Constructor which is intialized from a key, value pair of a pstats.stats
+        """ Constructor which is initialized from a key, value pair of a pstats.stats
             dictionary.
             
             :param stats_key: (file, line_nr, function) tuple
             :param stats_value: (prim_calls, n_calls, time, cum_time, caller_dict) tuple
         """
         (self.filePath, self.lineNr, self.functionName) = statsKey 
-        (self.nPrimCalls, self.nCalls, self.time, self.cumTime, _) = statsValue
+        (self.nPrimCalls, self.nCalls, self.time, self.cumTime, self.callers) = statsValue
         
         self.fileName = os.path.basename(self.filePath)
 
