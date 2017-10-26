@@ -5,7 +5,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
 
-import logging, pstats
+import logging, pstats, sys
 
 from .version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING
 from .qt import Qt, QtCore, QtGui, USE_PYQT, APPLICATION_INSTANCE
@@ -25,6 +25,10 @@ def createBrowser(fileName = None, **kwargs):
     if fileName is not None:
         browser.openStatsFile(fileName)
     browser.show()
+
+    if sys.platform.startswith('darwin'):
+        browser.raise_()
+
     return browser
         
         
@@ -179,7 +183,7 @@ class MainWindow(QtGui.QMainWindow):
             logger.info("Loading data from: {!r}".format(fileName))
             try:
                 self.loadStatsFile(fileName)
-            except StandardError, ex:
+            except Exception as ex:
                 if DEBUGGING:
                     raise
                 else:
@@ -211,7 +215,9 @@ class MainWindow(QtGui.QMainWindow):
             settings.beginGroup(self._settingsGroupName('view'))
             pos = settings.value("main_window/pos", pos)
             windowSize = settings.value("main_window/size", windowSize)
-            self.mainSplitter.restoreState(settings.value("main_splitter/state"))
+            splitter_state = settings.value("main_splitter/state")
+            if splitter_state:
+                self.mainSplitter.restoreState(splitter_state)
             self.tableView.readViewSettings('table/header_state', settings, reset) 
             settings.endGroup()
             

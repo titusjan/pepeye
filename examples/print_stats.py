@@ -1,15 +1,16 @@
-import pstats
+import pstats, sys
 
-def main():
+def main(fileName):
     
-    stats = pstats.Stats("small.prof")
+    stats = pstats.Stats(fileName)
     stats.strip_dirs()
-    stats.sort_stats('cumulative').print_stats(20)
-    print "\n"
-    stats.print_callers()
+    stats.sort_stats('cumulative')#.print_stats(20)
+    #print "\n"
+    stats.print_callers(1000)
     #stats.print_callees()
 
 if __name__ == "__main__":
-    main()
+    fileName = sys.argv[1] if len(sys.argv) == 2 else "small.prof"
+    main(fileName)
     
     

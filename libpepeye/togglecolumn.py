@@ -87,7 +87,9 @@ class ToggleColumnMixIn(object):
             if settings is None:
                 settings = QtCore.QSettings()
             horizontal_header = self._horizontalHeader()
-            header_restored = horizontal_header.restoreState(settings.value(key))
+            header_state = settings.value(key)
+            if header_state:
+                header_restored = horizontal_header.restoreState(header_state)
             
             # update actions
             for col, action in enumerate(horizontal_header.actions()):

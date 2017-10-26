@@ -110,7 +110,7 @@ class StatsTableModel(QtCore.QAbstractTableModel):
             self._nRows = 0
         else:
             self._statsObject = statsObject
-            self._statRows = [StatRow(k, v) for (k, v) in statsObject.stats.iteritems()]
+            self._statRows = [StatRow(k, v) for (k, v) in statsObject.stats.items()]
             self._nRows = len(self._statRows)
 
         self.endResetModel()
