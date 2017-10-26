@@ -1,5 +1,5 @@
-#!/opt/local/bin/python
-""" Quick Analysis Tool 2.
+#!/usr/bin/env python2
+""" Python profiler output viewer.
 """
 from __future__ import print_function
 import logging, sys, argparse
