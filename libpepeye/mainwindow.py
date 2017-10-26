@@ -8,7 +8,7 @@ from __future__ import division
 import logging, pstats, sys
 
 from .version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING
-from .qt import Qt, QtCore, QtGui, USE_PYQT, APPLICATION_INSTANCE
+from .qt import Qt, QtCore, QtWidgets, APPLICATION_INSTANCE
 
 from .statstablemodel import StatsTableModel, StatsTableProxyModel
 from .togglecolumn import ToggleColumnTableView
@@ -55,7 +55,7 @@ def browse(fileName = None, **kwargs):
 # pylint: disable=R0901, R0902, R0904, W0201 
 
 
-class MainWindow(QtGui.QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):
     """ pepyeye main application window.
     """
     _nInstances = 0
@@ -71,7 +71,7 @@ class MainWindow(QtGui.QMainWindow):
         
         # Model
         self._statsTableModel = StatsTableModel(parent=self, statsObject=None)
-        #self._proxyTableModel = QtGui.QSortFilterProxyModel(parent = self)
+        #self._proxyTableModel = QtWidgets.QSortFilterProxyModel(parent = self)
         self._proxyTableModel = StatsTableProxyModel(parent = self)
         self._proxyTableModel.setSourceModel(self._statsTableModel)
         self._proxyTableModel.setSortRole(StatsTableModel.SORT_ROLE)
@@ -83,7 +83,7 @@ class MainWindow(QtGui.QMainWindow):
         self.__setupMenu()
         self.__setupViews()
         self.setWindowTitle("{}".format(PROGRAM_NAME))
-        app = QtGui.QApplication.instance()
+        app = QtWidgets.QApplication.instance()
         app.lastWindowClosed.connect(app.quit) 
 
         self._readViewSettings(reset = reset)
@@ -117,12 +117,12 @@ class MainWindow(QtGui.QMainWindow):
     def __setupViews(self):
         """ Creates the UI widgets. 
         """
-        #self.mainWidget = QtGui.QWidget(self)
+        #self.mainWidget = QtWidgets.QWidget(self)
         #self.setCentralWidget(self.mainWidget)
         
-        self.mainSplitter = QtGui.QSplitter(self, orientation = QtCore.Qt.Vertical)
+        self.mainSplitter = QtWidgets.QSplitter(self, orientation = QtCore.Qt.Vertical)
         self.setCentralWidget(self.mainSplitter)
-        centralLayout = QtGui.QVBoxLayout()
+        centralLayout = QtWidgets.QVBoxLayout()
         self.mainSplitter.setLayout(centralLayout)
         
         # Table view
@@ -136,21 +136,21 @@ class MainWindow(QtGui.QMainWindow):
         self.tableView.setShowGrid(False)
         self.tableView.setCornerButtonEnabled(False)
         #self.tableView.verticalHeader().hide()
-        #self.tableView.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers) # needed?
+        #self.tableView.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers) # needed?
         self.tableView.setAlternatingRowColors(True)
-        self.tableView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.tableView.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.tableView.addHeaderContextMenu(enabled = {'function': False}, checked = {})
         centralLayout.addWidget(self.tableView)        
         
         tableHorHeader = self.tableView.horizontalHeader()
-        tableHorHeader.setMovable(True)
+        tableHorHeader.setSectionsMovable(True)
         tableHorHeader.setTextElideMode(Qt.ElideMiddle)
         tableHorHeader.setStretchLastSection(False)
         
         tableVerHeader = self.tableView.verticalHeader()
-        tableVerHeader.setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        tableVerHeader.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
         
-        self.label = QtGui.QLabel("Hi there", parent=self)
+        self.label = QtWidgets.QLabel("Hi there", parent=self)
         centralLayout.addWidget(self.label)        
         
         # Connect signals
@@ -172,12 +172,10 @@ class MainWindow(QtGui.QMainWindow):
         """ Lets the user select a pstats file and opens it.
         """
         if not fileName:
-            fileName = QtGui.QFileDialog.getOpenFileName(self, 
+            fileName = QtWidgets.QFileDialog.getOpenFileName(self,
                 caption = "Choose a pstats file", directory = '', 
                 filter='All files (*);;Profile statistics (*.prof; *.pro)')
-            if not USE_PYQT:
-                # PySide returns: (file, selectedFilter)
-                fileName = fileName[0]
+            fileName = fileName[0]
 
         if fileName:
             logger.info("Loading data from: {!r}".format(fileName))
@@ -188,7 +186,7 @@ class MainWindow(QtGui.QMainWindow):
                     raise
                 else:
                     logger.error("Error opening file: %s", ex)
-                    QtGui.QMessageBox.warning(self, "Error opening file", str(ex))
+                    QtWidgets.QMessageBox.warning(self, "Error opening file", str(ex))
     
     
     def _settingsGroupName(self, prefix):
@@ -248,7 +246,7 @@ class MainWindow(QtGui.QMainWindow):
     def about(self):
         """ Shows the about message window. """
         message = u"{} version {}\n\n{}""".format(PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL)
-        QtGui.QMessageBox.about(self, "About {}".format(PROGRAM_NAME), message)
+        QtWidgets.QMessageBox.about(self, "About {}".format(PROGRAM_NAME), message)
 
     def closeWindow(self):
         """ Closes the window """
@@ -256,7 +254,7 @@ class MainWindow(QtGui.QMainWindow):
         
     def quitApplication(self):
         """ Closes all windows """
-        app = QtGui.QApplication.instance()
+        app = QtWidgets.QApplication.instance()
         app.closeAllWindows()
 
     def closeEvent(self, event):

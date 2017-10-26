@@ -7,7 +7,7 @@ from __future__ import division
 
 import logging, pstats, os
 
-from .qt import QtCore, QtGui, Qt
+from .qt import QtCore, QtWidgets, Qt
 from .utils import check_class
     
 logger = logging.getLogger(__name__)
@@ -218,7 +218,7 @@ class StatsTableModel(QtCore.QAbstractTableModel):
             return None
     
     
-class StatsTableProxyModel(QtGui.QSortFilterProxyModel):
+class StatsTableProxyModel(QtCore.QSortFilterProxyModel):
     """ Proxy model that overrides the sorting.
 
         Needed to override the vertical header to always be increasing.

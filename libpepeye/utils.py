@@ -1,6 +1,6 @@
 """ Routines that do type checking or create classes
 """
-import logging
+import logging, numbers
 
 logger = logging.getLogger(__name__)
 
@@ -21,3 +21,27 @@ def check_class(obj, target_class, allow_none = False):
             raise TypeError("obj must be a of type {}, got: {}"
                             .format(target_class, type(obj)))
 
+
+def environment_var_to_bool(env_var):
+    """ Converts an environment variable to a boolean
+
+        Returns False if the environment variable is False, 0 or a case-insenstive string "false"
+        or "0".
+    """
+
+    # Try to see if env_var can be converted to an int
+    try:
+        env_var = int(env_var)
+    except ValueError:
+        pass
+
+    if isinstance(env_var, numbers.Number):
+        return bool(env_var)
+    elif is_a_string(env_var):
+        env_var = env_var.lower().strip()
+        if env_var in "false":
+            return False
+        else:
+            return True
+    else:
+        return bool(env_var)
