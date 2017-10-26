@@ -122,9 +122,7 @@ class MainWindow(QtWidgets.QMainWindow):
         
         self.mainSplitter = QtWidgets.QSplitter(self, orientation = QtCore.Qt.Vertical)
         self.setCentralWidget(self.mainSplitter)
-        centralLayout = QtWidgets.QVBoxLayout()
-        self.mainSplitter.setLayout(centralLayout)
-        
+
         # Table view
         self.tableView = ToggleColumnTableView(self)
         #self.tableView.setModel(self._statsTableModel)
@@ -140,7 +138,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tableView.setAlternatingRowColors(True)
         self.tableView.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.tableView.addHeaderContextMenu(enabled = {'function': False}, checked = {})
-        centralLayout.addWidget(self.tableView)        
+        self.mainSplitter.addWidget(self.tableView)
         
         tableHorHeader = self.tableView.horizontalHeader()
         tableHorHeader.setSectionsMovable(True)
@@ -151,7 +149,7 @@ class MainWindow(QtWidgets.QMainWindow):
         tableVerHeader.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
         
         self.label = QtWidgets.QLabel("Hi there", parent=self)
-        centralLayout.addWidget(self.label)        
+        self.mainSplitter.addWidget(self.label)
         
         # Connect signals
         pass
