@@ -8,7 +8,7 @@ from __future__ import division
 import logging, os, pstats, sys
 
 from .version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING
-from .qt import Qt, QtCore, QtWidgets, APPLICATION_INSTANCE
+from .qt import Qt, QtCore, QtGui, QtWidgets, APPLICATION_INSTANCE
 
 from .statstablemodel import StatsTableModel, StatsTableProxyModel
 from .togglecolumn import ToggleColumnTableView
@@ -140,6 +140,21 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tableView.setAlternatingRowColors(True)
         self.tableView.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.tableView.addHeaderContextMenu(enabled = {'function': False}, checked = {})
+
+        # Set font so that all table cells have the same font size (was not the case one Windows 10)
+        font = QtGui.QFont()
+        if sys.platform == 'linux':
+            pixelSize = 10
+        elif sys.platform == 'win32' or sys.platform == 'cygwin':
+            pixelSize = 13
+        elif sys.platform == 'darwin':
+            pixelSize = 13
+        else:
+            pixelSize = 13
+
+        font.setPixelSize(pixelSize)
+        self.tableView.setFont(font)
+
         self.mainSplitter.addWidget(self.tableView)
         
         tableHorHeader = self.tableView.horizontalHeader()

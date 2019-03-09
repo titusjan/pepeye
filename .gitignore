@@ -3,3 +3,4 @@
 output.txt
 *.org
 *.prof
+.idea/
