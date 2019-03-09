@@ -5,7 +5,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
 
-import logging, pstats, sys
+import logging, os, pstats, sys
 
 from .version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING
 from .qt import Qt, QtCore, QtWidgets, APPLICATION_INSTANCE
@@ -22,12 +22,14 @@ def createBrowser(fileName = None, **kwargs):
     """
     # Assumes qt.getQApplicationInstance() has been executed.
     browser = MainWindow(**kwargs)
-    if fileName is not None:
-        browser.openStatsFile(fileName)
     browser.show()
+    QtWidgets.QApplication.instance().processEvents()
 
     if sys.platform.startswith('darwin'):
         browser.raise_()
+
+    if fileName is not None:
+        browser.openStatsFile(fileName)
 
     return browser
         
@@ -160,6 +162,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """ Loads a pstats file and updates the table model
         """
         logger.debug("Loading file: {}".format(fileName))
+        self.setWindowTitle("{} -- {}".format(os.path.basename(fileName), PROGRAM_NAME))
         pStats = pstats.Stats(fileName)
         self._statsTableModel.setStats(statsObject=pStats)
         #pStats.strip_dirs()

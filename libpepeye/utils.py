@@ -22,6 +22,7 @@ def check_class(obj, target_class, allow_none = False):
                             .format(target_class, type(obj)))
 
 
+
 def environment_var_to_bool(env_var):
     """ Converts an environment variable to a boolean
 
@@ -37,7 +38,7 @@ def environment_var_to_bool(env_var):
 
     if isinstance(env_var, numbers.Number):
         return bool(env_var)
-    elif is_a_string(env_var):
+    elif isinstance(env_var, str):
         env_var = env_var.lower().strip()
         if env_var in "false":
             return False

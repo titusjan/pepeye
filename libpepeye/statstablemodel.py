@@ -68,8 +68,9 @@ class StatsTableModel(QtCore.QAbstractTableModel):
     HEADER_LABELS = [
         'path:line', 'file:line', 'function', 
         'calls', 'time', 'time per call',  
-        'primitive calls', 'cumulative time', 'cumulative time per call']
-    
+        'primitive calls', 'Σ time', 'Σ time per call']
+        #'cumulative time', 'cumulative time per call']
+
     def __init__(self, parent=None, statsObject=None):
         """ Constructor
         
