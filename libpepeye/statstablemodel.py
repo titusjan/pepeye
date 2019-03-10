@@ -118,13 +118,18 @@ class StatsTableModel(QtCore.QAbstractTableModel):
             :type  stats: pstats.Stats
         """
         super(StatsTableModel, self).__init__(parent)
+
         self._nCols = len(self.HEADER_LABELS)
+        self._sortColumn = 0
+        self._sortOrder = Qt.AscendingOrder
+        self._filterText = ""
+
 
         # These attributes will be set in setStats        
         self._statsObject = None
         self._statRows = []
+        self._orgRows = []
         self._nRows = 0
-        self._sortIdx = dict()
 
         self._toolTips = {
             self.COL_PATH_LINE: "Path to file plus line number",
@@ -164,29 +169,29 @@ class StatsTableModel(QtCore.QAbstractTableModel):
         self.beginResetModel()
         if statsObject is None:
             self._statsObject = None
-            self._statRows = []
-            self._nRows = 0
+            self._orgRows = []   # the unfiltered rows
+            self._statRows = []  # the filtered rows
         else:
             self._statsObject = statsObject
-            self._statRows = [StatRow(k, v) for (k, v) in statsObject.stats.items()]
-            self._nRows = len(self._statRows)
+            self._orgRows = [StatRow(k, v) for (k, v) in statsObject.stats.items()]
+            self._statRows = self._orgRows
 
         self.endResetModel()
         
 
-    def rowCount(self, parent):
+    def rowCount(self, parent=None, *args, **kwargs):
         """ Returns the number of columns for the children of the given parent.
         """
-        return self._nRows
+        return len(self._statRows)
 
-    def columnCount(self, parent):
+    def columnCount(self, parent=None, *args, **kwargs):
         """ Returns the number of rows under the given parent. 
             When the parent is valid it means that rowCount is returning the number of 
             children of parent. 
         """
         return self._nCols
 
-    def data(self, index, role):
+    def data(self, index, role=None):
         """ Returns the data stored under the given role for the item referred to by the index.
         """
         if not index.isValid():
@@ -198,7 +203,7 @@ class StatsTableModel(QtCore.QAbstractTableModel):
         if not (0 <= col < self._nCols):
             return None
         
-        if not (0 <= row < self._nRows):
+        if not (0 <= row < self.rowCount()):
             return None
         
         if role == Qt.TextAlignmentRole:
@@ -305,12 +310,38 @@ class StatsTableModel(QtCore.QAbstractTableModel):
     def sort(self, column, order=Qt.AscendingOrder):
         """ ﻿Sorts the model by column in the given order.
         """
-        logger.debug("sort col={}, order={}".format(column, order))
+        logger.debug("sort col: {}, order: {}".format(column, order))
+        self._sortColumn = column
+        self._sortOrder = order
+        self._sortAndFilter()
+
+
+    def filterRows(self, filterText):
+        """ Filters out rows that do not contain filterText in the path or function name
+        """
+        logger.debug("filtering by: {}".format(filterText))
+        self._filterText = filterText
+        self._sortAndFilter()
+
+
+    def _sortAndFilter(self):
+        """ Applies current filter and sorting options.
+        """
+        logger.debug("_sortAndFilter col: {}, order: {}, filter: !r"
+                     .format(self._sortOrder, self._sortOrder, self._filterText))
+
+        if self._filterText:
+            text = self._filterText
+            self._statRows = [sr for sr in self._orgRows
+                              if (text in sr.filePath or text in sr.functionName)]
+        else:
+            self._statRows = self._orgRows
+
+        check_class(self._statRows, list)
 
         # Sort the list of row in-place
         self.beginResetModel()
-        key = self.SORT_KEY_METHODS[column]
-        self._statRows.sort(key=key, reverse=bool(order))
+        key = self.SORT_KEY_METHODS[self._sortColumn]
+        self._statRows.sort(key=key, reverse=bool(self._sortOrder))
         self.endResetModel()
-
 

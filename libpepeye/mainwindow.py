@@ -101,6 +101,8 @@ class MainWindow(QtWidgets.QMainWindow):
         app = QtWidgets.QApplication.instance()
         app.lastWindowClosed.connect(app.quit) 
 
+        self.filterLineEdit.textChanged.connect(self._statsTableModel.filterRows)
+
         self._readViewSettings(reset = reset)
             
         logger.debug("MainWindow constructor finished")
@@ -138,6 +140,20 @@ class MainWindow(QtWidgets.QMainWindow):
         self.mainSplitter = QtWidgets.QSplitter(self, orientation = QtCore.Qt.Vertical)
         self.setCentralWidget(self.mainSplitter)
 
+        self.mainWidget = QtWidgets.QWidget()
+        self.mainLayout = QtWidgets.QVBoxLayout()
+        self.mainWidget.setLayout(self.mainLayout)
+        self.mainSplitter.addWidget(self.mainWidget)
+
+        # Filter
+        self.filterLineEdit = QtWidgets.QLineEdit()
+        self.filterLineEdit.setPlaceholderText("on this path or function name")
+        self.filterLayout = QtWidgets.QHBoxLayout()
+        self.filterLayout.addWidget(QtWidgets.QLabel("Filter"))
+        self.filterLayout.addWidget(self.filterLineEdit)
+        self.filterLayout.addStretch()
+        self.mainLayout.addLayout(self.filterLayout)
+
         # Table view
         self.tableView = ToggleColumnTableView(self)
         #self.tableView.setModel(self._statsTableModel)
@@ -168,8 +184,8 @@ class MainWindow(QtWidgets.QMainWindow):
         font.setPixelSize(pixelSize)
         self.tableView.setFont(font)
 
-        self.mainSplitter.addWidget(self.tableView)
-        
+        self.mainLayout.addWidget(self.tableView)
+
         tableHorHeader = self.tableView.horizontalHeader()
         tableHorHeader.setSectionsMovable(True)
         tableHorHeader.setTextElideMode(Qt.ElideMiddle)
@@ -183,7 +199,7 @@ class MainWindow(QtWidgets.QMainWindow):
         
         self.label = QtWidgets.QLabel("Hi there", parent=self)
         self.mainSplitter.addWidget(self.label)
-        
+
         # Connect signals
         pass
 
