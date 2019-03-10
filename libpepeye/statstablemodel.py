@@ -213,69 +213,69 @@ class StatsTableModel(QtCore.QAbstractTableModel):
 
 
 
-    
-    
-class StatsTableProxyModel(QtCore.QSortFilterProxyModel):
-    """ Proxy model that overrides the sorting.
-
-        Needed to override the vertical header to always be increasing.
-    """
-    def __init__(self, parent):
-        super(StatsTableProxyModel, self).__init__(parent)
-
-        self._srcModel = self.sourceModel()
-
-
-    # def lessThan(self, leftIndex, rightIndex):
-    #     """ Returns true if the value of the item referred to by the given index left is less than
-    #         the value of the item referred to by the given index right, otherwise returns false.
-    #     """
-    #     dataFn = self.sourceModel().data
-    #     leftData  = dataFn(leftIndex,  StatsTableModel.SORT_ROLE)
-    #     rightData = dataFn(rightIndex, StatsTableModel.SORT_ROLE)
-    #
-    #     return leftData < rightData
-    #
-    #
-
-
-    def lessThan(self, leftIndex, rightIndex):
-        """ Returns true if the value of the item referred to by the given index left is less than
-            the value of the item referred to by the given index right, otherwise returns false.
-        """
-        dataFn = self.sourceModel().data
-        leftData  = dataFn(leftIndex,  StatsTableModel.SORT_ROLE)
-        rightData = dataFn(rightIndex, StatsTableModel.SORT_ROLE)
-
-        if leftData != rightData:
-            return leftData < rightData
-        else:
-            # Tie breaker on filePath:LineNr
-            leftHandPath =  dataFn(leftIndex,   StatsTableModel.SORT_ROLE)
-            rightHandPath = dataFn(rightIndex,  StatsTableModel.SORT_ROLE)
-
-            if leftHandPath != leftHandPath:
-                return leftHandPath < rightHandPath
-            else:
-                # Tie breaker on filePath:LineNr
-                leftHandFname =  dataFn(leftIndex,   StatsTableModel.SORT_ROLE)
-                rightHandFname = dataFn(rightIndex,  StatsTableModel.SORT_ROLE)
-
-                return leftHandFname < rightHandFname
-
-
-        
-        
-    def headerData(self, section, orientation, role):
-        """ Returns the data for the given role and section in the header with the 
-            specified orientation.
-        """
-        # Take horizontal headers from the source model but override the vertical header
-        if role == Qt.DisplayRole:
-            if orientation == Qt.Horizontal:
-                return self.sourceModel().headerData(section, orientation, role)
-            else:
-                return str(section + 1)
-        else:
-            return None        
-    
+#
+#
+# class StatsTableProxyModel(QtCore.QSortFilterProxyModel):
+#     """ Proxy model that overrides the sorting.
+#
+#         Needed to override the vertical header to always be increasing.
+#     """
+#     def __init__(self, parent):
+#         super(StatsTableProxyModel, self).__init__(parent)
+#
+#         self._srcModel = self.sourceModel()
+#
+#
+#     # def lessThan(self, leftIndex, rightIndex):
+#     #     """ Returns true if the value of the item referred to by the given index left is less than
+#     #         the value of the item referred to by the given index right, otherwise returns false.
+#     #     """
+#     #     dataFn = self.sourceModel().data
+#     #     leftData  = dataFn(leftIndex,  StatsTableModel.SORT_ROLE)
+#     #     rightData = dataFn(rightIndex, StatsTableModel.SORT_ROLE)
+#     #
+#     #     return leftData < rightData
+#     #
+#     #
+#
+#
+#     def lessThan(self, leftIndex, rightIndex):
+#         """ Returns true if the value of the item referred to by the given index left is less than
+#             the value of the item referred to by the given index right, otherwise returns false.
+#         """
+#         dataFn = self.sourceModel().data
+#         leftData  = dataFn(leftIndex,  StatsTableModel.SORT_ROLE)
+#         rightData = dataFn(rightIndex, StatsTableModel.SORT_ROLE)
+#
+#         if leftData != rightData:
+#             return leftData < rightData
+#         else:
+#             # Tie breaker on filePath:LineNr
+#             leftHandPath =  dataFn(leftIndex,   StatsTableModel.SORT_ROLE)
+#             rightHandPath = dataFn(rightIndex,  StatsTableModel.SORT_ROLE)
+#
+#             if leftHandPath != leftHandPath:
+#                 return leftHandPath < rightHandPath
+#             else:
+#                 # Tie breaker on filePath:LineNr
+#                 leftHandFname =  dataFn(leftIndex,   StatsTableModel.SORT_ROLE)
+#                 rightHandFname = dataFn(rightIndex,  StatsTableModel.SORT_ROLE)
+#
+#                 return leftHandFname < rightHandFname
+#
+#
+#
+#
+#     def headerData(self, section, orientation, role):
+#         """ Returns the data for the given role and section in the header with the
+#             specified orientation.
+#         """
+#         # Take horizontal headers from the source model but override the vertical header
+#         if role == Qt.DisplayRole:
+#             if orientation == Qt.Horizontal:
+#                 return self.sourceModel().headerData(section, orientation, role)
+#             else:
+#                 return str(section + 1)
+#         else:
+#             return None
+#

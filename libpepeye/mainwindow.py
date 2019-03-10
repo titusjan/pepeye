@@ -14,14 +14,14 @@ import sys
 from .version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING
 from .qt import Qt, QtCore, QtGui, QtWidgets, APPLICATION_INSTANCE
 
-from .statstablemodel import StatsTableModel, StatsTableProxyModel
+from .statstablemodel import StatsTableModel
 from .togglecolumn import ToggleColumnTableView
 
 logger = logging.getLogger(__name__)
 
 
 
-def createBrowser(fileName = None, **kwargs):
+def createBrowser(fileName = None, selfProfFile=None, **kwargs):
     """ Opens an MainWindow window
     """
     # Assumes qt.getQApplicationInstance() has been executed.
@@ -33,19 +33,22 @@ def createBrowser(fileName = None, **kwargs):
 
     QtWidgets.QApplication.instance().processEvents()
 
-    profFileName = ''  # Profile the file-open function.
+    #profFileName = None
 
-    if profFileName:
+    if selfProfFile:
         profiler = cProfile.Profile()
         profiler.enable()
 
     if fileName is not None:
         browser.openStatsFile(fileName)
 
-    if profFileName:
-        logger.info("Saving profiling information to {}".format(profFileName))
+    if selfProfFile:
+        logger.info("Saving profiling information to {}".format(selfProfFile))
         profStats = pstats.Stats(profiler)
-        profStats.dump_stats(profFileName)
+        profStats.dump_stats(selfProfFile)
+
+        QtWidgets.QApplication.instance().processEvents()
+        sys.exit(3)
 
     return browser
         
@@ -90,11 +93,11 @@ class MainWindow(QtWidgets.QMainWindow):
         # Model
         self._statsTableModel = StatsTableModel(parent=self, statsObject=None)
         #self._proxyTableModel = QtWidgets.QSortFilterProxyModel(parent = self)
-        self._proxyTableModel = StatsTableProxyModel(parent = self)
-        self._proxyTableModel.setSourceModel(self._statsTableModel)
-        self._proxyTableModel.setSortRole(StatsTableModel.SORT_ROLE)
-        self._proxyTableModel.setDynamicSortFilter(True)
-        self._proxyTableModel.setSortCaseSensitivity(Qt.CaseInsensitive)
+        # self._proxyTableModel = StatsTableProxyModel(parent = self)
+        # self._proxyTableModel.setSourceModel(self._statsTableModel)
+        # self._proxyTableModel.setSortRole(StatsTableModel.SORT_ROLE)
+        # self._proxyTableModel.setDynamicSortFilter(True)
+        # self._proxyTableModel.setSortCaseSensitivity(Qt.CaseInsensitive)
 
         # Views
         self.__setupActions()
@@ -144,7 +147,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Table view
         self.tableView = ToggleColumnTableView(self)
         #self.tableView.setModel(self._statsTableModel)
-        self.tableView.setModel(self._proxyTableModel)
+        self.tableView.setModel(self._statsTableModel)
         self.tableView.setSortingEnabled(True)
         self.tableView.sortByColumn(StatsTableModel.COL_CUM_TIME, Qt.DescendingOrder)
         self.tableView.setTextElideMode(Qt.ElideMiddle)
