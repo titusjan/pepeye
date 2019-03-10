@@ -5,7 +5,10 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
 
-import logging, pstats, os
+import logging
+import os
+import pstats
+import re
 
 from .qt import QtCore, QtWidgets, Qt
 from .utils import check_class
@@ -25,57 +28,61 @@ class StatRow(object):
         """
         (self.filePath, self.lineNr, self.functionName) = statsKey
         (self.numPrimCalls, self.numCalls, self.time, self.cumTime, self.callers) = statsValue
+
+        self.fileName = os.path.basename(self.filePath)
         
-        self.fileAndLine = "{}:{}".format(os.path.basename(self.filePath), self.lineNr)
-        self.pathAndLine = "{}:{}".format(self.filePath, self.lineNr)
         self.timePerCall = self.time / self.numCalls
         self.cumTimePerCall = self.cumTime / self.numPrimCalls
 
-    # Sorting keys
+        self.lcFileName = self.fileName.lower()
+        self.lcFilePath = self.filePath.lower()
+        self.lcFunctionName = self.functionName.lower()
+
+    # Sorting keys. Use (path, line, function name) as tie breaker. Note that path can be '~' for
+    # built in methods, that's why function name is included in the tie breaker.
+
 
     @classmethod
     def keyPathAndLine(cls, statRow):
-        return (statRow.pathAndLine, statRow.filePath, statRow.lineNr, statRow.functionName)
+        return (statRow.lcFilePath, statRow.lineNr, statRow.lcFunctionName)
 
     @classmethod
     def keyFileAndLine(cls, statRow):
-        return (statRow.pathAndLine, statRow.filePath, statRow.lineNr, statRow.functionName)
+        return (statRow.lcFileName, statRow.lineNr, statRow.lcFunctionName)
 
     @classmethod
     def keyFunctionName(cls, statRow):
-        return (statRow.functionName, statRow.filePath, statRow.lineNr, statRow.functionName)
+        return (statRow.lcFunctionName, statRow.lcFilePath, statRow.lineNr)
 
     @classmethod
     def keyNumCalls(cls, statRow):
-        return (statRow.numCalls, statRow.filePath, statRow.lineNr, statRow.functionName)
+        return (statRow.numCalls, statRow.lcFilePath, statRow.lineNr, statRow.lcFunctionName)
 
     @classmethod
     def keyTime(cls, statRow):
-        return (statRow.time, statRow.filePath, statRow.lineNr, statRow.functionName)
+        return (statRow.time, statRow.lcFilePath, statRow.lineNr, statRow.lcFunctionName)
 
     @classmethod
     def keyTimePerCall(cls, statRow):
-        return (statRow.timePerCall, statRow.filePath, statRow.lineNr, statRow.functionName)
+        return (statRow.timePerCall, statRow.lcFilePath, statRow.lineNr, statRow.lcFunctionName)
 
     @classmethod
     def keyNumPrimCalls(cls, statRow):
-        return (statRow.numPrimCalls, statRow.filePath, statRow.lineNr, statRow.functionName)
+        return (statRow.numPrimCalls, statRow.lcFilePath, statRow.lineNr, statRow.lcFunctionName)
 
     @classmethod
     def keyCumTime(cls, statRow):
-        return (statRow.cumTime, statRow.filePath, statRow.lineNr, statRow.functionName)
+        return (statRow.cumTime, statRow.lcFilePath, statRow.lineNr, statRow.lcFunctionName)
 
     @classmethod
     def keyCumTimePerCall(cls, statRow):
-        return (statRow.cumTimePerCall, statRow.filePath, statRow.lineNr, statRow.functionName)
+        return (statRow.cumTimePerCall, statRow.lcFilePath, statRow.lineNr, statRow.lcFunctionName)
 
 
 
 class StatsTableModel(QtCore.QAbstractTableModel):
     """ Model for a table view to access pstats from the Python profiles
     """
-    SORT_ROLE = Qt.UserRole
-    
     COL_PATH_LINE = 0
     COL_FILE_LINE = 1
     COL_FUNCTION = 2
@@ -219,9 +226,9 @@ class StatsTableModel(QtCore.QAbstractTableModel):
             stat = self._statRows[row]
             
             if col == StatsTableModel.COL_PATH_LINE:
-                return stat.pathAndLine
+                return "{}:{}".format(stat.filePath, stat.lineNr)
             elif col == StatsTableModel.COL_FILE_LINE:
-                return stat.fileAndLine
+                return "{}:{}".format(stat.fileName, stat.lineNr)
             elif col == StatsTableModel.COL_FUNCTION: 
                 return stat.functionName
             elif col == StatsTableModel.COL_NUM_CALLS:
@@ -239,54 +246,7 @@ class StatsTableModel(QtCore.QAbstractTableModel):
             else:
                 assert False, "BUG: column number = {}".format(col)
 
-        elif role == StatsTableModel.SORT_ROLE:
-
-            stat = self._statRows[row]
-
-            if col == StatsTableModel.COL_PATH_LINE:
-                return stat.filePath
-
-            elif col == StatsTableModel.COL_FILE_LINE:
-                return stat.fileName
-
-            elif col == StatsTableModel.COL_FUNCTION:
-                return stat.functionName
-
-            elif col == StatsTableModel.COL_NUM_CALLS:
-                return stat.numCalls
-
-            elif col == StatsTableModel.COL_TIME:
-                return stat.time
-
-            elif col == StatsTableModel.COL_TIME_PER_CALL:
-                return stat.timePerCall
-
-            elif col == StatsTableModel.COL_NUM_PRIM_CALLS:
-                return stat.numPrimCalls
-
-            elif col == StatsTableModel.COL_CUM_TIME:
-                return stat.cumTime
-
-            elif col == StatsTableModel.COL_CUM_TIME_PER_CALL:
-                return stat.cumTimePerCall
-
-            else:
-                assert False, "BUG: column number = {}".format(col)
-
         else: # other display roles
-            return None
-
-
-    def _oldheaderData(self, section, orientation, role):
-        """ Returns the data for the given role and section in the header with the 
-            specified orientation.
-        """
-        if role == Qt.DisplayRole:
-            if orientation == Qt.Horizontal:
-                return self.HEADER_LABELS[section]
-            else:
-                return str(section + 1)
-        else:
             return None
 
 
@@ -331,9 +291,9 @@ class StatsTableModel(QtCore.QAbstractTableModel):
                      .format(self._sortOrder, self._sortOrder, self._filterText))
 
         if self._filterText:
-            text = self._filterText
+            text = self._filterText.lower()
             self._statRows = [sr for sr in self._orgRows
-                              if (text in sr.filePath or text in sr.functionName)]
+                              if (text in sr.lcFilePath or text in sr.lcFunctionName)]
         else:
             self._statRows = self._orgRows
 
