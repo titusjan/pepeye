@@ -103,8 +103,9 @@ class MainWindow(QtWidgets.QMainWindow):
         app.lastWindowClosed.connect(app.quit) 
 
         self.filterLineEdit.textChanged.connect(self._statsTableModel.filterRows)
+        self._statsTableModel.modelReset.connect(self.updateOccursLabel)
 
-        self._readViewSettings(reset = reset)
+        self._readViewSettings(reset=reset)
             
         logger.debug("MainWindow constructor finished")
      
@@ -148,10 +149,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Filter
         self.filterLineEdit = QtWidgets.QLineEdit()
-        self.filterLineEdit.setPlaceholderText("on this path or function name")
+        self.filterLineEdit.setFixedWidth(400)
+        self.filterLineEdit.setPlaceholderText("Filter on path or function name...")
         self.filterLayout = QtWidgets.QHBoxLayout()
-        self.filterLayout.addWidget(QtWidgets.QLabel("Filter"))
         self.filterLayout.addWidget(self.filterLineEdit)
+
+        self.occursLabel = QtWidgets.QLabel("")
+        self.filterLayout.addWidget(self.occursLabel)
         self.filterLayout.addStretch()
         self.mainLayout.addLayout(self.filterLayout)
 
@@ -162,8 +166,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.label = QtWidgets.QLabel("Hi there")
         self.mainSplitter.addWidget(self.label)
 
-        # Connect signals
-        pass
 
     # End of setup_methods
     
@@ -246,7 +248,18 @@ class MainWindow(QtWidgets.QMainWindow):
         settings.setValue("main_window/pos", self.pos())
         settings.setValue("main_window/size", self.size())
         settings.endGroup()
-            
+
+
+    def updateOccursLabel(self):
+        """ Updates the occurs label from the amount of rows in the table model.
+        """
+        if self.filterLineEdit.text():
+            self.occursLabel.setText("occurs in {} of {} rows"
+                .format(self._statsTableModel.rowCount(),
+                        self._statsTableModel.unfilteredRowCount()))
+        else:
+            self.occursLabel.setText('in {} rows'.format(
+                self._statsTableModel.unfilteredRowCount()))
 
 
     def myTest(self):

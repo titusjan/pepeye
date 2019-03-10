@@ -187,8 +187,14 @@ class StatsTableModel(QtCore.QAbstractTableModel):
         self._sortAndFilter()
 
 
+    def unfilteredRowCount(self, parent=None, *args, **kwargs):
+        """ Returns the number of unfiltered rows in the model.
+        """
+        return len(self._orgRows)
+
+
     def rowCount(self, parent=None, *args, **kwargs):
-        """ Returns the number of columns for the children of the given parent.
+        """ Returns the number of rows in the model. (this depends on the filter)
         """
         return len(self._statRows)
 
@@ -254,7 +260,6 @@ class StatsTableModel(QtCore.QAbstractTableModel):
             return None
 
 
-
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         """ Returns the data for the given role and section in the header with the
             specified orientation.
@@ -309,7 +314,6 @@ class StatsTableModel(QtCore.QAbstractTableModel):
         key = self.SORT_KEY_METHODS[self._sortColumn]
         self._statRows.sort(key=key, reverse=bool(self._sortOrder))
         self.endResetModel()
-
 
 
     def itemAtIndex(self, index):

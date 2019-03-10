@@ -1,14 +1,4 @@
 
-=== Misc ===
+Look at gprof2dot
 
-
-=== Table View ===
-
-- split files in dirname, basename
-
-
-=== Tree Wigdet ===
-
-=== Tree map ===
-
-
+ gprof2dot -f pstats myfile.prof | dot -Tpdf -o myfile.pdf

@@ -65,6 +65,7 @@ class StatsTableView(ToggleColumnTableView):
         tableVerHeader = self.verticalHeader()
         tableVerHeader.setSectionResizeMode(QtWidgets.QHeaderView.Fixed)
         tableVerHeader.setDefaultSectionSize(24)
+        tableVerHeader.setVisible(False) # Otherwise it distracts when typing the filter text.
 
         self._model.modelAboutToBeReset.connect(self.onModelAboutToBeReset)
         self._model.modelReset.connect(self.onModelReset)
