@@ -23,16 +23,53 @@ class StatRow(object):
             :param stats_key: (file, line_nr, function) tuple
             :param stats_value: (prim_calls, n_calls, time, cum_time, caller_dict) tuple
         """
-        (self.filePath, self.lineNr, self.functionName) = statsKey 
-        (self.nPrimCalls, self.nCalls, self.time, self.cumTime, self.callers) = statsValue
+        (self.filePath, self.lineNr, self.functionName) = statsKey
+        (self.numPrimCalls, self.numCalls, self.time, self.cumTime, self.callers) = statsValue
         
-        self.fileName = os.path.basename(self.filePath)
-        self.fileAndLine = "{}:{}".format(self.fileName, self.lineNr)
+        self.fileAndLine = "{}:{}".format(os.path.basename(self.filePath), self.lineNr)
         self.pathAndLine = "{}:{}".format(self.filePath, self.lineNr)
-        self.timePerCall = self.time / self.nCalls
-        self.cumTimePerCall = self.cumTime / self.nPrimCalls
-          
-          
+        self.timePerCall = self.time / self.numCalls
+        self.cumTimePerCall = self.cumTime / self.numPrimCalls
+
+    # Sorting keys
+
+    @classmethod
+    def keyPathAndLine(cls, statRow):
+        return (statRow.pathAndLine, statRow.filePath, statRow.lineNr, statRow.functionName)
+
+    @classmethod
+    def keyFileAndLine(cls, statRow):
+        return (statRow.pathAndLine, statRow.filePath, statRow.lineNr, statRow.functionName)
+
+    @classmethod
+    def keyFunctionName(cls, statRow):
+        return (statRow.functionName, statRow.filePath, statRow.lineNr, statRow.functionName)
+
+    @classmethod
+    def keyNumCalls(cls, statRow):
+        return (statRow.numCalls, statRow.filePath, statRow.lineNr, statRow.functionName)
+
+    @classmethod
+    def keyTime(cls, statRow):
+        return (statRow.time, statRow.filePath, statRow.lineNr, statRow.functionName)
+
+    @classmethod
+    def keyTimePerCall(cls, statRow):
+        return (statRow.timePerCall, statRow.filePath, statRow.lineNr, statRow.functionName)
+
+    @classmethod
+    def keyNumPrimCalls(cls, statRow):
+        return (statRow.numPrimCalls, statRow.filePath, statRow.lineNr, statRow.functionName)
+
+    @classmethod
+    def keyCumTime(cls, statRow):
+        return (statRow.cumTime, statRow.filePath, statRow.lineNr, statRow.functionName)
+
+    @classmethod
+    def keyCumTimePerCall(cls, statRow):
+        return (statRow.cumTimePerCall, statRow.filePath, statRow.lineNr, statRow.functionName)
+
+
 
 class StatsTableModel(QtCore.QAbstractTableModel):
     """ Model for a table view to access pstats from the Python profiles
@@ -42,13 +79,25 @@ class StatsTableModel(QtCore.QAbstractTableModel):
     COL_PATH_LINE = 0
     COL_FILE_LINE = 1
     COL_FUNCTION = 2
-    COL_N_CALLS = 3
+    COL_NUM_CALLS = 3
     COL_TIME = 4
     COL_TIME_PER_CALL = 5
-    COL_PRIM_CALLS = 6
+    COL_NUM_PRIM_CALLS = 6
     COL_CUM_TIME = 7
     COL_CUM_TIME_PER_CALL = 8
-    
+
+    SORT_KEY_METHODS = {
+        COL_PATH_LINE         : StatRow.keyPathAndLine,
+        COL_FILE_LINE         : StatRow.keyFileAndLine,
+        COL_FUNCTION          : StatRow.keyFunctionName,
+        COL_NUM_CALLS         : StatRow.keyNumCalls,
+        COL_TIME              : StatRow.keyTime,
+        COL_TIME_PER_CALL     : StatRow.keyTimePerCall,
+        COL_NUM_PRIM_CALLS    : StatRow.keyNumPrimCalls,
+        COL_CUM_TIME          : StatRow.keyCumTime,
+        COL_CUM_TIME_PER_CALL : StatRow.keyCumTimePerCall
+    }
+
     HEADER_LABELS = [
         'path:line', 'file:line', 'function', 
         'calls', 'time', 'time per call',  
@@ -68,7 +117,10 @@ class StatsTableModel(QtCore.QAbstractTableModel):
         self._statsObject = None
         self._statRows = []
         self._nRows = 0
-        
+        self._sortIdx = dict()
+
+
+
     @property
     def headerLabels(self):
         "Returns list of header labels"
@@ -146,14 +198,14 @@ class StatsTableModel(QtCore.QAbstractTableModel):
                 return stat.fileAndLine
             elif col == StatsTableModel.COL_FUNCTION: 
                 return stat.functionName
-            elif col == StatsTableModel.COL_N_CALLS:
-                return str(stat.nCalls)
+            elif col == StatsTableModel.COL_NUM_CALLS:
+                return str(stat.numCalls)
             elif col == StatsTableModel.COL_TIME:
                 return "{:.3f}".format(stat.time)
             elif col == StatsTableModel.COL_TIME_PER_CALL:
                 return "{:.7f}".format(stat.timePerCall)
-            elif col == StatsTableModel.COL_PRIM_CALLS:
-                return str(stat.nPrimCalls)
+            elif col == StatsTableModel.COL_NUM_PRIM_CALLS:
+                return str(stat.numPrimCalls)
             elif col == StatsTableModel.COL_CUM_TIME:
                 return "{:.3f}".format(stat.cumTime)
             elif col == StatsTableModel.COL_CUM_TIME_PER_CALL:
@@ -174,8 +226,8 @@ class StatsTableModel(QtCore.QAbstractTableModel):
             elif col == StatsTableModel.COL_FUNCTION:
                 return stat.functionName
 
-            elif col == StatsTableModel.COL_N_CALLS:
-                return stat.nCalls
+            elif col == StatsTableModel.COL_NUM_CALLS:
+                return stat.numCalls
 
             elif col == StatsTableModel.COL_TIME:
                 return stat.time
@@ -183,8 +235,8 @@ class StatsTableModel(QtCore.QAbstractTableModel):
             elif col == StatsTableModel.COL_TIME_PER_CALL:
                 return stat.timePerCall
 
-            elif col == StatsTableModel.COL_PRIM_CALLS:
-                return stat.nPrimCalls
+            elif col == StatsTableModel.COL_NUM_PRIM_CALLS:
+                return stat.numPrimCalls
 
             elif col == StatsTableModel.COL_CUM_TIME:
                 return stat.cumTime
@@ -212,70 +264,15 @@ class StatsTableModel(QtCore.QAbstractTableModel):
             return None
 
 
+    def sort(self, column, order=Qt.AscendingOrder):
+        """ ﻿Sorts the model by column in the given order.
+        """
+        logger.debug("sort col={}, order={}".format(column, order))
 
-#
-#
-# class StatsTableProxyModel(QtCore.QSortFilterProxyModel):
-#     """ Proxy model that overrides the sorting.
-#
-#         Needed to override the vertical header to always be increasing.
-#     """
-#     def __init__(self, parent):
-#         super(StatsTableProxyModel, self).__init__(parent)
-#
-#         self._srcModel = self.sourceModel()
-#
-#
-#     # def lessThan(self, leftIndex, rightIndex):
-#     #     """ Returns true if the value of the item referred to by the given index left is less than
-#     #         the value of the item referred to by the given index right, otherwise returns false.
-#     #     """
-#     #     dataFn = self.sourceModel().data
-#     #     leftData  = dataFn(leftIndex,  StatsTableModel.SORT_ROLE)
-#     #     rightData = dataFn(rightIndex, StatsTableModel.SORT_ROLE)
-#     #
-#     #     return leftData < rightData
-#     #
-#     #
-#
-#
-#     def lessThan(self, leftIndex, rightIndex):
-#         """ Returns true if the value of the item referred to by the given index left is less than
-#             the value of the item referred to by the given index right, otherwise returns false.
-#         """
-#         dataFn = self.sourceModel().data
-#         leftData  = dataFn(leftIndex,  StatsTableModel.SORT_ROLE)
-#         rightData = dataFn(rightIndex, StatsTableModel.SORT_ROLE)
-#
-#         if leftData != rightData:
-#             return leftData < rightData
-#         else:
-#             # Tie breaker on filePath:LineNr
-#             leftHandPath =  dataFn(leftIndex,   StatsTableModel.SORT_ROLE)
-#             rightHandPath = dataFn(rightIndex,  StatsTableModel.SORT_ROLE)
-#
-#             if leftHandPath != leftHandPath:
-#                 return leftHandPath < rightHandPath
-#             else:
-#                 # Tie breaker on filePath:LineNr
-#                 leftHandFname =  dataFn(leftIndex,   StatsTableModel.SORT_ROLE)
-#                 rightHandFname = dataFn(rightIndex,  StatsTableModel.SORT_ROLE)
-#
-#                 return leftHandFname < rightHandFname
-#
-#
-#
-#
-#     def headerData(self, section, orientation, role):
-#         """ Returns the data for the given role and section in the header with the
-#             specified orientation.
-#         """
-#         # Take horizontal headers from the source model but override the vertical header
-#         if role == Qt.DisplayRole:
-#             if orientation == Qt.Horizontal:
-#                 return self.sourceModel().headerData(section, orientation, role)
-#             else:
-#                 return str(section + 1)
-#         else:
-#             return None
-#
+        # Sort the list of row in-place
+        self.beginResetModel()
+        key = self.SORT_KEY_METHODS[column]
+        self._statRows.sort(key=key, reverse=bool(order))
+        self.endResetModel()
+
+
