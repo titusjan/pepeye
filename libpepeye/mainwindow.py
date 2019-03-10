@@ -15,7 +15,8 @@ from .version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING
 from .qt import Qt, QtCore, QtGui, QtWidgets, APPLICATION_INSTANCE
 
 from .statstablemodel import StatsTableModel
-from .togglecolumn import ToggleColumnTableView
+from .statstableview import StatsTableView
+
 
 logger = logging.getLogger(__name__)
 
@@ -155,49 +156,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.mainLayout.addLayout(self.filterLayout)
 
         # Table view
-        self.tableView = ToggleColumnTableView(self)
-        #self.tableView.setModel(self._statsTableModel)
-        self.tableView.setModel(self._statsTableModel)
-        self.tableView.setSortingEnabled(True)
-        self.tableView.sortByColumn(StatsTableModel.COL_CUM_TIME, Qt.DescendingOrder)
-        self.tableView.setTextElideMode(Qt.ElideMiddle)
-        self.tableView.setWordWrap(False)
-        self.tableView.setShowGrid(False)
-        self.tableView.setCornerButtonEnabled(False)
-        #self.tableView.verticalHeader().hide()
-        #self.tableView.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers) # needed?
-        self.tableView.setAlternatingRowColors(True)
-        self.tableView.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.tableView.addHeaderContextMenu(enabled = {'function': False}, checked = {})
-
-        # Set font so that all table cells have the same font size (was not the case one Windows 10)
-        font = QtGui.QFont()
-        if sys.platform == 'linux':
-            pixelSize = 10
-        elif sys.platform == 'win32' or sys.platform == 'cygwin':
-            pixelSize = 13
-        elif sys.platform == 'darwin':
-            pixelSize = 13
-        else:
-            pixelSize = 13
-
-        font.setPixelSize(pixelSize)
-        self.tableView.setFont(font)
-
+        self.tableView = StatsTableView(self._statsTableModel)
         self.mainLayout.addWidget(self.tableView)
 
-        tableHorHeader = self.tableView.horizontalHeader()
-        tableHorHeader.setSectionsMovable(True)
-        tableHorHeader.setTextElideMode(Qt.ElideMiddle)
-        tableHorHeader.setStretchLastSection(False)
-
-        # Setting vertical table header resize mode to fixed. Setting it to ResizeToContents is
-        # slow because it then will read all the data items when displaying or sorting.
-        tableVerHeader = self.tableView.verticalHeader()
-        tableVerHeader.setSectionResizeMode(QtWidgets.QHeaderView.Fixed)
-        tableVerHeader.setDefaultSectionSize(24)
-        
-        self.label = QtWidgets.QLabel("Hi there", parent=self)
+        self.label = QtWidgets.QLabel("Hi there")
         self.mainSplitter.addWidget(self.label)
 
         # Connect signals
@@ -285,6 +247,7 @@ class MainWindow(QtWidgets.QMainWindow):
         settings.setValue("main_window/size", self.size())
         settings.endGroup()
             
+
 
     def myTest(self):
         """ Function for testing """

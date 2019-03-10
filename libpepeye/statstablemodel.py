@@ -8,7 +8,6 @@ from __future__ import division
 import logging
 import os
 import pstats
-import re
 
 from .qt import QtCore, QtWidgets, Qt
 from .utils import check_class
@@ -184,12 +183,15 @@ class StatsTableModel(QtCore.QAbstractTableModel):
             self._statRows = self._orgRows
 
         self.endResetModel()
-        
+
+        self._sortAndFilter()
+
 
     def rowCount(self, parent=None, *args, **kwargs):
         """ Returns the number of columns for the children of the given parent.
         """
         return len(self._statRows)
+
 
     def columnCount(self, parent=None, *args, **kwargs):
         """ Returns the number of rows under the given parent. 
@@ -197,6 +199,7 @@ class StatsTableModel(QtCore.QAbstractTableModel):
             children of parent. 
         """
         return self._nCols
+
 
     def data(self, index, role=None):
         """ Returns the data stored under the given role for the item referred to by the index.
@@ -228,8 +231,9 @@ class StatsTableModel(QtCore.QAbstractTableModel):
             if col == StatsTableModel.COL_PATH_LINE:
                 return "{}:{}".format(stat.filePath, stat.lineNr)
             elif col == StatsTableModel.COL_FILE_LINE:
+                #return "0x:{:08x}".format(id(stat)) # for debugging
                 return "{}:{}".format(stat.fileName, stat.lineNr)
-            elif col == StatsTableModel.COL_FUNCTION: 
+            elif col == StatsTableModel.COL_FUNCTION:
                 return stat.functionName
             elif col == StatsTableModel.COL_NUM_CALLS:
                 return str(stat.numCalls)
@@ -287,8 +291,10 @@ class StatsTableModel(QtCore.QAbstractTableModel):
     def _sortAndFilter(self):
         """ Applies current filter and sorting options.
         """
-        logger.debug("_sortAndFilter col: {}, order: {}, filter: !r"
-                     .format(self._sortOrder, self._sortOrder, self._filterText))
+        logger.debug("_sortAndFilter col: {}, order: {}, filter: {!r}"
+                     .format(self._sortColumn, self._sortOrder, self._filterText))
+
+        self.beginResetModel()
 
         if self._filterText:
             text = self._filterText.lower()
@@ -300,8 +306,36 @@ class StatsTableModel(QtCore.QAbstractTableModel):
         check_class(self._statRows, list)
 
         # Sort the list of row in-place
-        self.beginResetModel()
         key = self.SORT_KEY_METHODS[self._sortColumn]
         self._statRows.sort(key=key, reverse=bool(self._sortOrder))
         self.endResetModel()
 
+
+
+    def itemAtIndex(self, index):
+        """ Returns the StatRow at the modelIndex, or None if not found.
+        """
+        if not index.isValid():
+            return None
+
+        row = index.row()
+
+        if not (0 <= row < self.rowCount()):
+            return None
+
+        return self._statRows[row]
+
+
+    def findIndexForItem(self, statsRow):
+        """ Searches through the rows for the statsRow item.
+
+            Returns index(row, 0) if it found it. Otherwise returns invalid index.
+        """
+        try:
+            pos = self._statRows.index(statsRow)
+        except ValueError:
+            logger.debug("StatsRow not found: {}".format(statsRow))
+            return QtCore.QModelIndex()
+        else:
+            logger.debug("StatsRow found at row {}".format(pos))
+            return self.createIndex(pos, 0)
