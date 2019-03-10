@@ -91,13 +91,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self._InstanceNr = self._nInstances        
         
         # Model
-        self._statsTableModel = StatsTableModel(parent=self, statsObject=None)
-        #self._proxyTableModel = QtWidgets.QSortFilterProxyModel(parent = self)
-        # self._proxyTableModel = StatsTableProxyModel(parent = self)
-        # self._proxyTableModel.setSourceModel(self._statsTableModel)
-        # self._proxyTableModel.setSortRole(StatsTableModel.SORT_ROLE)
-        # self._proxyTableModel.setDynamicSortFilter(True)
-        # self._proxyTableModel.setSortCaseSensitivity(Qt.CaseInsensitive)
+        self._statsTableModel = StatsTableModel(parent=self)
 
         # Views
         self.__setupActions()

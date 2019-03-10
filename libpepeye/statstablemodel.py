@@ -86,25 +86,32 @@ class StatsTableModel(QtCore.QAbstractTableModel):
     COL_CUM_TIME = 7
     COL_CUM_TIME_PER_CALL = 8
 
-    SORT_KEY_METHODS = {
-        COL_PATH_LINE         : StatRow.keyPathAndLine,
-        COL_FILE_LINE         : StatRow.keyFileAndLine,
-        COL_FUNCTION          : StatRow.keyFunctionName,
-        COL_NUM_CALLS         : StatRow.keyNumCalls,
-        COL_TIME              : StatRow.keyTime,
-        COL_TIME_PER_CALL     : StatRow.keyTimePerCall,
-        COL_NUM_PRIM_CALLS    : StatRow.keyNumPrimCalls,
-        COL_CUM_TIME          : StatRow.keyCumTime,
-        COL_CUM_TIME_PER_CALL : StatRow.keyCumTimePerCall
-    }
 
     HEADER_LABELS = [
-        'path:line', 'file:line', 'function', 
-        'calls', 'time', 'time per call',  
-        'primitive calls', 'Σ time', 'Σ time per call']
-        #'cumulative time', 'cumulative time per call']
+        'path:line',
+        'file:line',
+        'function',
+        'calls',
+        'time',
+        'time per call',
+        'primitive calls',
+        'Σ time',           # cumulative time
+        'Σ time per call'
+    ]
 
-    def __init__(self, parent=None, statsObject=None):
+    SORT_KEY_METHODS = [
+        StatRow.keyPathAndLine,
+        StatRow.keyFileAndLine,
+        StatRow.keyFunctionName,
+        StatRow.keyNumCalls,
+        StatRow.keyTime,
+        StatRow.keyTimePerCall,
+        StatRow.keyNumPrimCalls,
+        StatRow.keyCumTime,
+        StatRow.keyCumTimePerCall
+    ]
+
+    def __init__(self, parent=None):
         """ Constructor
         
             :param stats: profiler statistics object.
@@ -119,7 +126,21 @@ class StatsTableModel(QtCore.QAbstractTableModel):
         self._nRows = 0
         self._sortIdx = dict()
 
-
+        self._toolTips = {
+            self.COL_PATH_LINE: "Path to file plus line number",
+            self.COL_FILE_LINE: "Base file name plus line number",
+            self.COL_FUNCTION: "Function name",
+            self.COL_NUM_CALLS: "Number of calls of this function",
+            self.COL_TIME: "The total time spent in the given function "
+                           "(excluding time made in calls to sub-functions)",
+            self.COL_TIME_PER_CALL: "Time divided by the number of calls",
+            self.COL_NUM_PRIM_CALLS: "Number of non-recursive calls of this function.",
+            self.COL_CUM_TIME: "The cumulative time spent in this and all subfunctions "
+                               "(from invocation till exit). This figure is accurate even for "
+                               "recursive functions.",
+            self.COL_CUM_TIME_PER_CALL: "Cumulative (Σ) time divided by the number of primitive "
+                                        "calls",
+        }
 
     @property
     def headerLabels(self):
@@ -251,7 +272,7 @@ class StatsTableModel(QtCore.QAbstractTableModel):
             return None
 
 
-    def headerData(self, section, orientation, role):
+    def _oldheaderData(self, section, orientation, role):
         """ Returns the data for the given role and section in the header with the 
             specified orientation.
         """
@@ -262,6 +283,23 @@ class StatsTableModel(QtCore.QAbstractTableModel):
                 return str(section + 1)
         else:
             return None
+
+
+
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
+        """ Returns the data for the given role and section in the header with the
+            specified orientation.
+        """
+        if orientation == Qt.Horizontal:
+            if role == Qt.DisplayRole:
+                return self.HEADER_LABELS[section]
+            elif role == Qt.ToolTipRole:
+                return self._toolTips.get(section, "")
+        else:
+            if role == Qt.DisplayRole:
+                return str(section + 1)
+
+        return None
 
 
     def sort(self, column, order=Qt.AscendingOrder):
