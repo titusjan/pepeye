@@ -5,7 +5,11 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import division
 
-import logging, os, pstats, sys
+import cProfile
+import logging
+import os
+import pstats
+import sys
 
 from .version import PROGRAM_NAME, PROGRAM_VERSION, PROGRAM_URL, DEBUGGING
 from .qt import Qt, QtCore, QtGui, QtWidgets, APPLICATION_INSTANCE
@@ -23,13 +27,25 @@ def createBrowser(fileName = None, **kwargs):
     # Assumes qt.getQApplicationInstance() has been executed.
     browser = MainWindow(**kwargs)
     browser.show()
-    QtWidgets.QApplication.instance().processEvents()
 
     if sys.platform.startswith('darwin'):
         browser.raise_()
 
+    QtWidgets.QApplication.instance().processEvents()
+
+    profFileName = ''  # Profile the file-open function.
+
+    if profFileName:
+        profiler = cProfile.Profile()
+        profiler.enable()
+
     if fileName is not None:
         browser.openStatsFile(fileName)
+
+    if profFileName:
+        logger.info("Saving profiling information to {}".format(profFileName))
+        profStats = pstats.Stats(profiler)
+        profStats.dump_stats(profFileName)
 
     return browser
         

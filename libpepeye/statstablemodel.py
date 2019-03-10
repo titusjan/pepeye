@@ -27,26 +27,10 @@ class StatRow(object):
         (self.nPrimCalls, self.nCalls, self.time, self.cumTime, self.callers) = statsValue
         
         self.fileName = os.path.basename(self.filePath)
-
-    @property
-    def fileAndLine(self):
-        """ File name and line number separated by a colon"""
-        return "{}:{}".format(self.fileName, self.lineNr)
-
-    @property
-    def pathAndLine(self):
-        """ Full file path and line number separated by a colon"""
-        return "{}:{}".format(self.filePath, self.lineNr)
-        
-    @property
-    def timePerCall(self):
-        """ Seconds spend per function call."""
-        return self.time / self.nCalls
-    
-    @property
-    def cumTimePerCall(self):
-        """ Cumulative time spend per function call."""
-        return self.cumTime / self.nPrimCalls
+        self.fileAndLine = "{}:{}".format(self.fileName, self.lineNr)
+        self.pathAndLine = "{}:{}".format(self.filePath, self.lineNr)
+        self.timePerCall = self.time / self.nCalls
+        self.cumTimePerCall = self.cumTime / self.nPrimCalls
           
           
 
@@ -167,43 +151,52 @@ class StatsTableModel(QtCore.QAbstractTableModel):
             elif col == StatsTableModel.COL_TIME:
                 return "{:.3f}".format(stat.time)
             elif col == StatsTableModel.COL_TIME_PER_CALL:
-                return "{:.4f}".format(stat.timePerCall)
+                return "{:.7f}".format(stat.timePerCall)
             elif col == StatsTableModel.COL_PRIM_CALLS:
                 return str(stat.nPrimCalls)
             elif col == StatsTableModel.COL_CUM_TIME:
                 return "{:.3f}".format(stat.cumTime)
             elif col == StatsTableModel.COL_CUM_TIME_PER_CALL:
-                return "{:.4f}".format(stat.cumTimePerCall)
+                return "{:.7f}".format(stat.cumTimePerCall)
             else:
                 assert False, "BUG: column number = {}".format(col)
 
         elif role == StatsTableModel.SORT_ROLE:
-            
+
             stat = self._statRows[row]
-            
+
             if col == StatsTableModel.COL_PATH_LINE:
-                return (stat.filePath, stat.lineNr, stat.functionName)
+                return stat.filePath
+
             elif col == StatsTableModel.COL_FILE_LINE:
-                return (stat.fileName, stat.lineNr, stat.filePath, stat.functionName)
-            elif col == StatsTableModel.COL_FUNCTION: 
-                return (stat.functionName, stat.filePath, stat.lineNr, stat.functionName)
+                return stat.fileName
+
+            elif col == StatsTableModel.COL_FUNCTION:
+                return stat.functionName
+
             elif col == StatsTableModel.COL_N_CALLS:
-                return (stat.nCalls, stat.nPrimCalls, stat.filePath, stat.lineNr, stat.functionName)
+                return stat.nCalls
+
             elif col == StatsTableModel.COL_TIME:
-                return (stat.time, stat.filePath, stat.lineNr, stat.functionName)
+                return stat.time
+
             elif col == StatsTableModel.COL_TIME_PER_CALL:
-                return (stat.timePerCall, stat.filePath, stat.lineNr, stat.functionName)
+                return stat.timePerCall
+
             elif col == StatsTableModel.COL_PRIM_CALLS:
-                return (stat.nPrimCalls, stat.nCalls, stat.filePath, stat.lineNr, stat.functionName)
+                return stat.nPrimCalls
+
             elif col == StatsTableModel.COL_CUM_TIME:
-                return (stat.cumTime, stat.filePath, stat.lineNr, stat.functionName)
+                return stat.cumTime
+
             elif col == StatsTableModel.COL_CUM_TIME_PER_CALL:
-                return (stat.cumTimePerCall, stat.filePath, stat.lineNr, stat.functionName)
+                return stat.cumTimePerCall
+
             else:
                 assert False, "BUG: column number = {}".format(col)
-           
+
         else: # other display roles
-            return None 
+            return None
 
 
     def headerData(self, section, orientation, role):
@@ -217,6 +210,9 @@ class StatsTableModel(QtCore.QAbstractTableModel):
                 return str(section + 1)
         else:
             return None
+
+
+
     
     
 class StatsTableProxyModel(QtCore.QSortFilterProxyModel):
@@ -227,15 +223,47 @@ class StatsTableProxyModel(QtCore.QSortFilterProxyModel):
     def __init__(self, parent):
         super(StatsTableProxyModel, self).__init__(parent)
 
+        self._srcModel = self.sourceModel()
+
+
+    # def lessThan(self, leftIndex, rightIndex):
+    #     """ Returns true if the value of the item referred to by the given index left is less than
+    #         the value of the item referred to by the given index right, otherwise returns false.
+    #     """
+    #     dataFn = self.sourceModel().data
+    #     leftData  = dataFn(leftIndex,  StatsTableModel.SORT_ROLE)
+    #     rightData = dataFn(rightIndex, StatsTableModel.SORT_ROLE)
+    #
+    #     return leftData < rightData
+    #
+    #
+
 
     def lessThan(self, leftIndex, rightIndex):
-        """ Returns true if the value of the item referred to by the given index left is less than 
+        """ Returns true if the value of the item referred to by the given index left is less than
             the value of the item referred to by the given index right, otherwise returns false.
         """
-        leftData  = self.sourceModel().data(leftIndex,  StatsTableModel.SORT_ROLE)
-        rightData = self.sourceModel().data(rightIndex, StatsTableModel.SORT_ROLE)
-        
-        return leftData < rightData
+        dataFn = self.sourceModel().data
+        leftData  = dataFn(leftIndex,  StatsTableModel.SORT_ROLE)
+        rightData = dataFn(rightIndex, StatsTableModel.SORT_ROLE)
+
+        if leftData != rightData:
+            return leftData < rightData
+        else:
+            # Tie breaker on filePath:LineNr
+            leftHandPath =  dataFn(leftIndex,   StatsTableModel.SORT_ROLE)
+            rightHandPath = dataFn(rightIndex,  StatsTableModel.SORT_ROLE)
+
+            if leftHandPath != leftHandPath:
+                return leftHandPath < rightHandPath
+            else:
+                # Tie breaker on filePath:LineNr
+                leftHandFname =  dataFn(leftIndex,   StatsTableModel.SORT_ROLE)
+                rightHandFname = dataFn(rightIndex,  StatsTableModel.SORT_ROLE)
+
+                return leftHandFname < rightHandFname
+
+
         
         
     def headerData(self, section, orientation, role):
