@@ -180,9 +180,12 @@ class MainWindow(QtWidgets.QMainWindow):
         tableHorHeader.setSectionsMovable(True)
         tableHorHeader.setTextElideMode(Qt.ElideMiddle)
         tableHorHeader.setStretchLastSection(False)
-        
+
+        # Setting vertical table header resize mode to fixed. Setting it to ResizeToContents is
+        # slow because it then will read all the data items when displaying or sorting.
         tableVerHeader = self.tableView.verticalHeader()
-        tableVerHeader.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+        tableVerHeader.setSectionResizeMode(QtWidgets.QHeaderView.Fixed)
+        tableVerHeader.setDefaultSectionSize(24)
         
         self.label = QtWidgets.QLabel("Hi there", parent=self)
         self.mainSplitter.addWidget(self.label)
