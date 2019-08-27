@@ -122,6 +122,10 @@ class MainWindow(QtWidgets.QMainWindow):
         fileMenu = self.menuBar().addMenu("&File")
         openAction = fileMenu.addAction("&Open...", self.openStatsFile)
         openAction.setShortcut("Ctrl+O")
+        self.reloadAction = fileMenu.addAction("&Reload", self.reloadStatsFile)
+        self.reloadAction.setShortcut("Ctrl+R")
+        self.reloadAction.setEnabled(False)
+        fileMenu.addSeparator()
         fileMenu.addAction("C&lose", self.closeWindow, "Ctrl+W")
         fileMenu.addAction("E&xit", self.quitApplication, "Ctrl+Q")
         if DEBUGGING is True:
@@ -168,16 +172,32 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
     # End of setup_methods
+
+    def reloadStatsFile(self):
+        """ Reloads the currently open stats file
+        """
+        if self._fileName is not None:
+            self.loadStatsFile(self._fileName)
+            self._statsTableModel._sortAndFilter()
+        else:
+            logger.warning("No current file to be reloaded.")
+
+
     
     def loadStatsFile(self, fileName):
         """ Loads a pstats file and updates the table model
         """
+        assert fileName is not None, "fileName undefined"
         logger.debug("Loading file: {}".format(fileName))
+
+        self._fileName = fileName
         self.setWindowTitle("{} -- {}".format(os.path.basename(fileName), PROGRAM_NAME))
         pStats = pstats.Stats(fileName)
         self._statsTableModel.setStats(statsObject=pStats)
         #pStats.strip_dirs()
         #pStats.calc_callees()
+
+        self.reloadAction.setEnabled(True)
         
 
     def openStatsFile(self, fileName=None):
@@ -200,7 +220,9 @@ class MainWindow(QtWidgets.QMainWindow):
                     logger.error("Error opening file: %s", ex)
                     QtWidgets.QMessageBox.warning(self, "Error opening file", str(ex))
     
-    
+
+
+
     def _settingsGroupName(self, prefix):
         """ Creates a setting group name based on the prefix and instance number
         """
